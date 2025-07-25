@@ -1,12 +1,12 @@
 /* QoL: Added 'scroll-behavior: auto' to prevent conflict with Lenis smooth scroll */
 html {
     scroll-behavior: auto;
+    /* overflow: hidden; <-- REMOVED to fix mobile scrolling */
 }
 body {
     background-color: #000000;
     color: #f0f0f0;
     font-family: 'Inter', sans-serif;
-    overflow: hidden; /* Needed for Lenis smooth scroll wrapper */
     cursor: none; /* Hide native cursor */
 }
 
@@ -30,8 +30,8 @@ body.cursor-hover #cursor-dot {
     background-color: rgba(248, 113, 113, 0.5);
 }
 
-/* Hide custom cursor on touch devices */
-@media (pointer: coarse) {
+/* Hide custom cursor on touch devices OR small screens for better compatibility */
+@media (pointer: coarse), (max-width: 768px) {
   #cursor-dot {
     display: none;
   }
