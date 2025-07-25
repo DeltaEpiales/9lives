@@ -78,7 +78,7 @@ body.cursor-hover #cursor-dot {
     width: 100%;
 }
 
-/* Glitch effect for the main hero image */
+/* Glitch effect for the main hero image (can be re-enabled by adding the class) */
 .glitch-image {
     position: relative;
 }
