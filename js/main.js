@@ -35,7 +35,21 @@ const NoiseShader = {
 
 
 // --- CORE APP LOGIC ---
+
+/**
+ * Fixes the 100vh issue on mobile browsers where the UI changes height.
+ */
+function handleViewportHeight() {
+    const setVh = () => {
+        let vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+    setVh();
+    window.addEventListener('resize', setVh);
+}
+
 function startApp() {
+    handleViewportHeight(); // <-- ADD THIS
     setupScrolling();
     setupCursor();
     
@@ -235,13 +249,11 @@ function renderProducts(products) {
 
 
 // --- ANIMATION & SCROLLING ---
-// --- ANIMATION & SCROLLING ---
 function setupScrolling() {
-    // Check if the device is a touch device (not a mouse)
     const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
 
-    // Only initialize Lenis on non-touch devices
     if (!isTouchDevice) {
+        // --- DESKTOP: Use Lenis for smooth scroll ---
         lenis = new Lenis({
             wrapper: document.querySelector('#smooth-wrapper'),
             content: document.querySelector('#smooth-content'),
@@ -258,35 +270,30 @@ function setupScrolling() {
             },
             getBoundingClientRect() {
                 return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
-            }
+            },
         });
 
         gsap.ticker.add((time) => {
             lenis.raf(time * 1000);
         });
-
         gsap.ticker.lagSmoothing(0);
+        
+        // On desktop, the scroller is the wrapper
+        ScrollTrigger.defaults({ scroller: "#smooth-wrapper" });
+
     } else {
-        // On touch devices, use the body for ScrollTrigger
-        ScrollTrigger.scrollerProxy(document.body, {
-            scrollTop(value) {
-                if (arguments.length) {
-                  document.documentElement.scrollTop = value;
-                  document.body.scrollTop = value;
-                }
-                return Math.max(document.documentElement.scrollTop, document.body.scrollTop);
-            },
-            getBoundingClientRect() {
-                return {top: 0, left: 0, width: window.innerWidth, height: window.innerHeight};
-            }
-        });
+        // --- MOBILE: Use native scroll ---
+        // We don't initialize Lenis.
+        // We tell ScrollTrigger to use the body/window as the scroller.
+        ScrollTrigger.defaults({ scroller: window });
     }
 }
 
-
 function animate(time) {
+    // If lenis is running, use its delta. Otherwise, use Three's clock.
+    const delta = lenis ? lenis.deltaTime / 1000 : clock.getDelta();
+
     if (composer) {
-        const delta = clock.getDelta();
         const viewBounds = { x: (window.innerWidth / window.innerHeight) * camera.position.z * 0.5, y: camera.position.z * 0.5 };
         catSprites.forEach(cat => {
             cat.position.addScaledVector(cat.velocity, delta);
@@ -300,12 +307,14 @@ function animate(time) {
 }
 
 function setupStaticAnimations() {
+    // With the ScrollTrigger.defaults set in setupScrolling, we no longer need to
+    // specify the scroller here. It will automatically use the correct one.
     document.querySelectorAll('.parallax-container').forEach((container) => {
         const content = container.querySelector('.parallax-content');
         const art = container.querySelector('.parallax-art');
-        gsap.to(content, { yPercent: -20, ease: "none", scrollTrigger: { trigger: container, scroller: "#smooth-wrapper", scrub: true } });
+        gsap.to(content, { yPercent: -20, ease: "none", scrollTrigger: { trigger: container, scrub: true } });
         if (art) { 
-            gsap.to(art, { yPercent: 30, ease: "none", scrollTrigger: { trigger: container, scroller: "#smooth-wrapper", scrub: true } }); 
+            gsap.to(art, { yPercent: 30, ease: "none", scrollTrigger: { trigger: container, scrub: true } }); 
         }
     });
 }
@@ -358,8 +367,9 @@ function init3DBackground() {
         scene.add(cat);
     }
 
-    gsap.to(camera.rotation, { y: Math.PI / 2, x: -Math.PI / 8, scrollTrigger: { scroller: "#smooth-wrapper", scrub: 1 } });
-    gsap.to(stars.rotation, { y: 2, x: 1, scrollTrigger: { scroller: "#smooth-wrapper", scrub: 1 } });
+    // These animations will now use the correct scroller automatically.
+    gsap.to(camera.rotation, { y: Math.PI / 2, x: -Math.PI / 8, scrollTrigger: { scrub: 1 } });
+    gsap.to(stars.rotation, { y: 2, x: 1, scrollTrigger: { scrub: 1 } });
 
     window.addEventListener('resize', onWindowResize, false);
 }

@@ -50,6 +50,11 @@ body.cursor-hover #cursor-dot {
     width: 100%;
 }
 
+/* Fix for mobile viewport height jumping */
+.dynamic-screen {
+    height: 100vh; /* Fallback */
+    height: calc(var(--vh, 1vh) * 100);
+}
 /* Apply Lenis styles ONLY on devices with a fine pointer (a mouse) */
 @media (pointer: fine) {
     html {
