@@ -1,12 +1,13 @@
 /* QoL: Added 'scroll-behavior: auto' to prevent conflict with Lenis smooth scroll */
 html {
     scroll-behavior: auto;
+    overflow: hidden; /* Apply overflow blocking here for better mobile compatibility */
 }
 body {
     background-color: #000000;
     color: #f0f0f0;
     font-family: 'Inter', sans-serif;
-    overflow: hidden; /* Needed for Lenis smooth scroll wrapper */
+    /* overflow: hidden; <-- REMOVED FROM HERE */
     cursor: none; /* Hide native cursor */
 }
 
