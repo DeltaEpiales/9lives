@@ -317,11 +317,18 @@ function init3DBackground() {
     const catTexture1 = textureLoader.load('images/cat1.png');
     const catTexture2 = textureLoader.load('images/cat2.png');
 
-    const catMaterial1 = new THREE.SpriteMaterial({ map: catTexture1, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.9 });
-    const catMaterial2 = new THREE.SpriteMaterial({ map: catTexture2, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.9 });
-    
-    for (let i = 0; i < 4; i++) {
-        const cat = new THREE.Sprite(i % 2 === 0 ? catMaterial1 : catMaterial2);
+    for (let i = 0; i < 8; i++) {
+        const randomTexture = i % 2 === 0 ? catTexture1 : catTexture2;
+        
+        const catMaterial = new THREE.SpriteMaterial({
+            map: randomTexture,
+            blending: THREE.AdditiveBlending,
+            transparent: true,
+            opacity: THREE.MathUtils.randFloat(0.5, 1.0),
+            color: new THREE.Color().setHSL(Math.random(), 0.9, 0.7)
+        });
+
+        const cat = new THREE.Sprite(catMaterial);
         cat.position.set(THREE.MathUtils.randFloatSpread(10), THREE.MathUtils.randFloatSpread(10), THREE.MathUtils.randFloatSpread(10));
         cat.scale.setScalar(THREE.MathUtils.randFloat(0.8, 1.5));
         cat.velocity = new THREE.Vector3(THREE.MathUtils.randFloat(-0.5, 0.5), THREE.MathUtils.randFloat(-0.5, 0.5), THREE.MathUtils.randFloat(-0.5, 0.5));

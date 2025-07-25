@@ -77,18 +77,57 @@ body.cursor-hover #cursor-dot {
 .nav-link:hover::after {
     width: 100%;
 }
-.glitch {
-    font-size: 8rem;
-    font-weight: 700;
-    text-transform: uppercase;
+
+/* Glitch effect for the main hero image */
+.glitch-image {
     position: relative;
-    animation: glitch 10s infinite;
 }
-@keyframes glitch {
-    0%, 5%, 100% { text-shadow: none; transform: none; }
-    5.1% { text-shadow: 0.05em 0 0 rgba(255, 0, 0, 0.5), -0.025em -0.05em 0 rgba(0, 255, 0, 0.5), 0.025em 0.05em 0 rgba(0, 0, 255, 0.5); transform: translate(-0.025em, 0.01em); }
-    5.2% { text-shadow: -0.05em -0.025em 0 rgba(255, 0, 0, .5), 0.025em 0.025em 0 rgba(0, 255, 0, .5), -0.05em -0.05em 0 rgba(0, 0, 255, .5); transform: translate(0.025em, -0.01em); }
+.glitch-image > img {
+    position: relative;
+    z-index: 1;
 }
+.glitch-image::before,
+.glitch-image::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('../images/lt.png'); /* Note: Path relative to CSS file */
+    background-size: cover;
+    background-position: center;
+    opacity: 0.8;
+}
+.glitch-image::before {
+    animation: image-glitch-1 3s infinite linear alternate-reverse;
+    mix-blend-mode: screen;
+    background-color: #ff00ff; /* Magenta */
+    z-index: 2;
+}
+.glitch-image::after {
+    animation: image-glitch-2 2s infinite linear alternate-reverse;
+    mix-blend-mode: screen;
+    background-color: #00ffff; /* Cyan */
+    z-index: 0;
+}
+@keyframes image-glitch-1 {
+    0% { clip-path: inset(30% 0 60% 0); transform: translateX(-0.02em); }
+    20% { clip-path: inset(80% 0 10% 0); transform: translateX(0.01em); }
+    40% { clip-path: inset(5% 0 80% 0); transform: translateX(-0.02em); }
+    60% { clip-path: inset(60% 0 30% 0); transform: translateX(0.02em); }
+    80% { clip-path: inset(10% 0 5% 0); transform: translateX(-0.01em); }
+    100% { clip-path: inset(90% 0 5% 0); transform: translateX(0.01em); }
+}
+@keyframes image-glitch-2 {
+    0% { clip-path: inset(55% 0 21% 0); transform: translateX(0.02em); }
+    20% { clip-path: inset(10% 0 44% 0); transform: translateX(-0.02em); }
+    40% { clip-path: inset(88% 0 2% 0); transform: translateX(0.01em); }
+    60% { clip-path: inset(33% 0 50% 0); transform: translateX(-0.01em); }
+    80% { clip-path: inset(70% 0 20% 0); transform: translateX(0.02em); }
+    100% { clip-path: inset(40% 0 45% 0); transform: translateX(-0.01em); }
+}
+
 .card {
     background: rgba(16, 16, 16, 0.7);
     backdrop-filter: blur(10px);
