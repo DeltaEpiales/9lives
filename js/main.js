@@ -235,32 +235,54 @@ function renderProducts(products) {
 
 
 // --- ANIMATION & SCROLLING ---
+// --- ANIMATION & SCROLLING ---
 function setupScrolling() {
-    lenis = new Lenis({
-        wrapper: document.querySelector('#smooth-wrapper'),
-        content: document.querySelector('#smooth-content'),
-    });
+    // Check if the device is a touch device (not a mouse)
+    const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
 
-    lenis.on('scroll', ScrollTrigger.update);
+    // Only initialize Lenis on non-touch devices
+    if (!isTouchDevice) {
+        lenis = new Lenis({
+            wrapper: document.querySelector('#smooth-wrapper'),
+            content: document.querySelector('#smooth-content'),
+        });
 
-    ScrollTrigger.scrollerProxy("#smooth-wrapper", {
-        scrollTop(value) {
-            if (arguments.length) {
-                lenis.scrollTo(value, { duration: 0, immediate: true });
+        lenis.on('scroll', ScrollTrigger.update);
+
+        ScrollTrigger.scrollerProxy("#smooth-wrapper", {
+            scrollTop(value) {
+                if (arguments.length) {
+                    lenis.scrollTo(value, { duration: 0, immediate: true });
+                }
+                return lenis.actualScroll;
+            },
+            getBoundingClientRect() {
+                return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
             }
-            return lenis.actualScroll;
-        },
-        getBoundingClientRect() {
-            return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
-        }
-    });
+        });
 
-    gsap.ticker.add((time) => {
-        lenis.raf(time * 1000);
-    });
+        gsap.ticker.add((time) => {
+            lenis.raf(time * 1000);
+        });
 
-    gsap.ticker.lagSmoothing(0);
+        gsap.ticker.lagSmoothing(0);
+    } else {
+        // On touch devices, use the body for ScrollTrigger
+        ScrollTrigger.scrollerProxy(document.body, {
+            scrollTop(value) {
+                if (arguments.length) {
+                  document.documentElement.scrollTop = value;
+                  document.body.scrollTop = value;
+                }
+                return Math.max(document.documentElement.scrollTop, document.body.scrollTop);
+            },
+            getBoundingClientRect() {
+                return {top: 0, left: 0, width: window.innerWidth, height: window.innerHeight};
+            }
+        });
+    }
 }
+
 
 function animate(time) {
     if (composer) {

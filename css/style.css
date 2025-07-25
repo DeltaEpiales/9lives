@@ -1,16 +1,13 @@
 /* QoL: Added 'scroll-behavior: auto' to prevent conflict with Lenis smooth scroll */
 html {
     scroll-behavior: auto;
-    overflow: hidden; /* Apply overflow blocking here for better mobile compatibility */
-    height: 100%;
+    /* overflow: hidden; <-- REMOVED FROM HERE */
 }
 body {
     background-color: #000000;
     color: #f0f0f0;
     font-family: 'Inter', sans-serif;
     cursor: none; /* Hide native cursor */
-    height: 100%;
-    overflow: hidden;
 }
 
 /* QoL: Custom Cursor Styles */
@@ -43,17 +40,31 @@ body.cursor-hover #cursor-dot {
   }
 }
 
-/* QoL: Lenis Smooth Scroll Wrapper */
+/* --- MOBILE-FIRST SCROLLING FIX --- */
+/* By default, the wrapper is static */
 #smooth-wrapper {
-    width: 100%;
-    height: 100vh;
-    overflow-y: auto;
-    overflow-x: hidden;
+    position: static;
 }
 #smooth-content {
     overflow: visible;
     width: 100%;
 }
+
+/* Apply Lenis styles ONLY on devices with a fine pointer (a mouse) */
+@media (pointer: fine) {
+    html {
+        overflow: hidden;
+    }
+    #smooth-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+}
+/* --- END OF FIX --- */
 
 .font-graffiti {
     font-family: 'Londrina Sketch', cursive;
