@@ -313,10 +313,13 @@ function init3DBackground() {
     const stars = new THREE.Points(starGeometry, new THREE.PointsMaterial({ color: 0xaaaaaa, size: 0.1 }));
     scene.add(stars);
 
-    const catTexture1 = createCatTexture('#f87171', '#000000');
-    const catTexture2 = createCatTexture('#60a5fa', '#000000');
+    const textureLoader = new THREE.TextureLoader();
+    const catTexture1 = textureLoader.load('images/cat1.png');
+    const catTexture2 = textureLoader.load('images/cat2.png');
+
     const catMaterial1 = new THREE.SpriteMaterial({ map: catTexture1, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.9 });
     const catMaterial2 = new THREE.SpriteMaterial({ map: catTexture2, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.9 });
+    
     for (let i = 0; i < 4; i++) {
         const cat = new THREE.Sprite(i % 2 === 0 ? catMaterial1 : catMaterial2);
         cat.position.set(THREE.MathUtils.randFloatSpread(10), THREE.MathUtils.randFloatSpread(10), THREE.MathUtils.randFloatSpread(10));
@@ -338,10 +341,6 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
     composer.setSize(window.innerWidth, window.innerHeight);
-}
-
-function createCatTexture(bgColor, eyeColor) {
-    const c = document.createElement('canvas'); c.width=128; c.height=128; const x=c.getContext('2d'); x.fillStyle=bgColor; x.beginPath(); x.moveTo(64,10); x.bezierCurveTo(10,10,10,80,40,118); x.bezierCurveTo(64,110,88,118,118,80); x.bezierCurveTo(118,10,64,10,64,10); x.closePath(); x.fill(); x.beginPath(); x.moveTo(20,40); x.lineTo(10,10); x.lineTo(50,20); x.closePath(); x.fill(); x.beginPath(); x.moveTo(108,40); x.lineTo(118,10); x.lineTo(78,20); x.closePath(); x.fill(); x.fillStyle=eyeColor; x.beginPath(); x.arc(45,60,8,0,2*Math.PI); x.fill(); x.beginPath(); x.arc(83,60,8,0,2*Math.PI); x.fill(); return new THREE.CanvasTexture(c);
 }
 
 function setupAdmin() {

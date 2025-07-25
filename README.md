@@ -21,11 +21,23 @@ This is a modern, single-page web application for a fictional streetwear brand c
 
 ### Local Development
 
+1.  **Run the setup script**:
+    ```bash
+    python setup.py
+    ```
+    This will create all the necessary files and an `images/` directory.
 
-1.  **Start the local server**:
+2.  **Add Your Images**:
+    * Place the following files inside the newly created `images/` folder:
+        * `lt.png` (your main hero logo)
+        * `cat1.png` (your first floating head image)
+        * `cat2.png` (your second floating head image)
+
+3.  **Start the local server**:
     * On Windows: `launch.bat`
     * On macOS/Linux: `./launch.sh`
-2.  **View the site**: Open your browser to the localhost address provided in the terminal (usually `http://localhost:8000`).
+
+4.  **View the site**: Open your browser to the localhost address provided in the terminal (usually `http://localhost:8000`).
 
 ## Firebase Setup
 
