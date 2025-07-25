@@ -1,6 +1,6 @@
 # 9 Lives Streetwear - README
 
-This is a modern, single-page web application for a fictional streetwear brand called "9 Lives". It's built with HTML, CSS, and vanilla JavaScript, and it uses Firebase for its backend services. This README will guide you through setting up the project, configuring Firebase, and deploying it.
+This is a modern, single-page web application for a streetwear brand called "9 Lives". It's built with HTML, CSS, and vanilla JavaScript, and it uses Firebase for its backend services. This README will guide you through setting up the project, configuring Firebase, and deploying it.
 
 ## Features
 
