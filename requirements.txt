@@ -1,3 +1,1 @@
 # No specific Python packages are required for the basic local server.
-# If you were to add a more advanced server like 'flask' or 'livereload',
-# you would add them here.

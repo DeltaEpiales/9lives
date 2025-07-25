@@ -50,6 +50,8 @@ function startApp() {
         }
     } catch (e) {
         console.error("Firebase initialization failed:", e.message);
+        runInDemoMode();
+        return;
     }
 
     if (auth) {
@@ -58,6 +60,36 @@ function startApp() {
         console.warn("Offline mode: Store and Poll features are disabled.");
         handleAuthState(null);
     }
+}
+
+function runInDemoMode() {
+    // Show and handle the closable demo bar
+    const demoBar = document.getElementById('demo-mode-indicator');
+    demoBar.classList.remove('hidden');
+    document.getElementById('close-demo-bar').addEventListener('click', () => {
+        demoBar.classList.add('hidden');
+    });
+
+    // Mock products
+    const mockProducts = [
+        { id: '1', name: 'Dimensional Drift Tee', price: 48.00, img: 'https://placehold.co/600x800/1a1a1a/f87171?text=Drift+Tee', desc: 'A comfortable tee that seems to phase in and out of reality.' },
+        { id: '2', name: '9-Lives Hoodie', price: 50.00, img: 'https://placehold.co/600x800/1a1a1a/60a5fa?text=Glitch+Hoodie', desc: 'Heavyweight hoodie with embroidered glitch patterns.' },
+        { id: '3', name: 'Chrono-Cargo Pants', price: 130.00, img: 'https://placehold.co/600x800/1a1a1a/34d399?text=Chrono+Pants', desc: 'Durable cargo pants with enough pockets for your timeline.' }
+    ];
+    renderProducts(mockProducts);
+    
+    // Mock votes and render the poll
+    const mockVotes = {
+        'cyber-pink': 42,
+        'toxic-green': 78,
+        'glacier-blue': 55,
+        'solar-orange': 23
+    };
+    renderPoll(mockVotes);
+
+    setupStaticAnimations();
+    init3DBackground();
+    requestAnimationFrame(animate);
 }
 
 async function handleAuthState(user) {
@@ -133,6 +165,7 @@ function renderCart(items) {
 
     cartItemsEl.querySelectorAll('.remove-from-cart-btn').forEach(b => {
         b.addEventListener('click', async e => {
+            if (!auth) return;
             await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/cart`, e.target.dataset.itemId));
         });
     });
@@ -141,7 +174,6 @@ function renderCart(items) {
     cartCountEl.textContent = currentCartCount;
     cartTotalEl.textContent = `$${items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}`;
 
-    // QoL: Animate cart icon on update
     if (currentCartCount > prevCartCount) {
         cartButton.classList.add('is-updated');
         setTimeout(() => cartButton.classList.remove('is-updated'), 400);
@@ -149,11 +181,7 @@ function renderCart(items) {
     prevCartCount = currentCartCount;
 }
 
-// ... other UI functions like setupAdmin, renderAdminProductList, setupPoll, renderPoll ...
-// (These functions are omitted for brevity but are the same as before)
-
 // --- STORE & DATA LOGIC ---
-// (seedInitialData, setupStore are the same as before, so they are omitted here)
 function renderProducts(products) {
     const productList = document.getElementById('product-list');
     if (!products || products.length === 0) {
@@ -172,7 +200,6 @@ function renderProducts(products) {
             </div>
         </div>`).join('');
 
-    // QoL: Handle lazy loading and "Add to Cart" feedback
     productList.querySelectorAll('.card').forEach(card => {
         const img = card.querySelector('.product-image');
         if (img.complete) {
@@ -216,15 +243,26 @@ function setupScrolling() {
 
     lenis.on('scroll', ScrollTrigger.update);
 
+    ScrollTrigger.scrollerProxy("#smooth-wrapper", {
+        scrollTop(value) {
+            if (arguments.length) {
+                lenis.scrollTo(value, { duration: 0, immediate: true });
+            }
+            return lenis.actualScroll;
+        },
+        getBoundingClientRect() {
+            return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
+        }
+    });
+
     gsap.ticker.add((time) => {
         lenis.raf(time * 1000);
     });
+
     gsap.ticker.lagSmoothing(0);
 }
 
 function animate(time) {
-    // This function is now just for the 3D background, 
-    // as Lenis handles its own animation loop via gsap.ticker
     if (composer) {
         const delta = clock.getDelta();
         const viewBounds = { x: (window.innerWidth / window.innerHeight) * camera.position.z * 0.5, y: camera.position.z * 0.5 };
@@ -243,8 +281,10 @@ function setupStaticAnimations() {
     document.querySelectorAll('.parallax-container').forEach((container) => {
         const content = container.querySelector('.parallax-content');
         const art = container.querySelector('.parallax-art');
-        gsap.to(content, { yPercent: -20, ease: "none", scrollTrigger: { trigger: container, scrub: true } });
-        if (art) { gsap.to(art, { yPercent: 30, ease: "none", scrollTrigger: { trigger: container, scrub: true } }); }
+        gsap.to(content, { yPercent: -20, ease: "none", scrollTrigger: { trigger: container, scroller: "#smooth-wrapper", scrub: true } });
+        if (art) { 
+            gsap.to(art, { yPercent: 30, ease: "none", scrollTrigger: { trigger: container, scroller: "#smooth-wrapper", scrub: true } }); 
+        }
     });
 }
 
@@ -286,8 +326,8 @@ function init3DBackground() {
         scene.add(cat);
     }
 
-    gsap.to(camera.rotation, { y: Math.PI / 2, x: -Math.PI / 8, scrollTrigger: { scrub: 1 } });
-    gsap.to(stars.rotation, { y: 2, x: 1, scrollTrigger: { scrub: 1 } });
+    gsap.to(camera.rotation, { y: Math.PI / 2, x: -Math.PI / 8, scrollTrigger: { scroller: "#smooth-wrapper", scrub: 1 } });
+    gsap.to(stars.rotation, { y: 2, x: 1, scrollTrigger: { scroller: "#smooth-wrapper", scrub: 1 } });
 
     window.addEventListener('resize', onWindowResize, false);
 }
@@ -304,8 +344,6 @@ function createCatTexture(bgColor, eyeColor) {
     const c = document.createElement('canvas'); c.width=128; c.height=128; const x=c.getContext('2d'); x.fillStyle=bgColor; x.beginPath(); x.moveTo(64,10); x.bezierCurveTo(10,10,10,80,40,118); x.bezierCurveTo(64,110,88,118,118,80); x.bezierCurveTo(118,10,64,10,64,10); x.closePath(); x.fill(); x.beginPath(); x.moveTo(20,40); x.lineTo(10,10); x.lineTo(50,20); x.closePath(); x.fill(); x.beginPath(); x.moveTo(108,40); x.lineTo(118,10); x.lineTo(78,20); x.closePath(); x.fill(); x.fillStyle=eyeColor; x.beginPath(); x.arc(45,60,8,0,2*Math.PI); x.fill(); x.beginPath(); x.arc(83,60,8,0,2*Math.PI); x.fill(); return new THREE.CanvasTexture(c);
 }
 
-// --- FULL JS for functions omitted above (Admin, Poll, etc.) for copy-pasting ---
-// (This section is placed here so you have the full code if needed, but it's identical to the previous version)
 function setupAdmin() {
     const loginModal = document.getElementById('login-modal');
     const adminPanel = document.getElementById('admin-panel');
@@ -366,6 +404,7 @@ function renderPoll(votes) {
         return `<div class="poll-option border border-gray-700 p-4 rounded-lg"><div class="flex justify-between items-center mb-2"><div class="flex items-center"><div class="w-6 h-6 rounded-md ${option.color} mr-4 border-2 border-gray-600"></div><span class="font-bold">${option.name}</span></div><button data-poll-option="${option.id}" class="vote-btn border border-red-400 text-red-400 px-4 py-1 rounded-full text-sm hover:bg-red-400 hover:text-black transition">Vote</button></div><div class="w-full bg-gray-700 rounded-full h-2.5"><div class="${option.color} h-2.5 rounded-full" style="width: ${percentage}%"></div></div><span class="text-xs text-gray-400 text-left block mt-1">${voteCount} votes</span></div>`;
     }).join('');
     container.querySelectorAll('.vote-btn').forEach(b => b.addEventListener('click', async (e) => {
+        if (!auth) return;
         const pollDocRef = doc(db, `artifacts/${appId}/public/data/polls`, 'next-colorway');
         try { await runTransaction(db, async t => { const pollDoc = await t.get(pollDocRef); const newVotes = pollDoc.data().votes; newVotes[e.target.dataset.pollOption]++; t.update(pollDocRef, { votes: newVotes }); });
         } catch (err) { console.error("Poll vote failed: ", err); }
@@ -378,15 +417,6 @@ async function seedInitialData() {
         placeholderProducts.forEach(p => { const docRef = doc(productsColRef); batch.set(docRef, p); });
         await batch.commit(); console.log("Initial product data seeded.");
     }
-}
-function setupStore() {
-    const productList = document.getElementById('product-list');
-    productList.innerHTML = `<div class="product-loader col-span-full"></div>`;
-    onSnapshot(productsColRef, (snapshot) => {
-        const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderProducts(products);
-        renderAdminProductList(products);
-    });
 }
 // --- START THE APP ---
 document.addEventListener('DOMContentLoaded', startApp);
