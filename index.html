@@ -2,163 +2,857 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>9 Lives - Streetwear</title>
-
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 font-family=%22monospace%22 fill=%22%23f87171%22>9L</text></svg>">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Londrina+Sketch&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Londrina+Sketch&family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --neon-red: #ff2a2a; --neon-blue: #2a2aff; --bg-black: #050505; --glass: rgba(20, 20, 20, 0.95); }
+        body { background-color: var(--bg-black); color: #f0f0f0; font-family: 'Inter', sans-serif; overflow-x: hidden; cursor: auto; -webkit-tap-highlight-color: transparent; }
+        .font-graffiti { font-family: 'Londrina Sketch', cursive; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Preloader */
+        #preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out, visibility 0.5s; }
+        .loader-bar { width: 200px; height: 2px; background: #333; margin-top: 20px; position: relative; overflow: hidden; }
+        .loader-bar::after { content: ''; position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: var(--neon-red); animation: load 2s ease-in-out forwards; }
+        @keyframes load { 0% { width: 0%; } 100% { width: 100%; } }
+        
+        /* 3D Canvas */
+        .hero-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        
+        /* UI Elements */
+        .content-wrapper { position: relative; z-index: 2; opacity: 0; transition: opacity 1s ease-out; }
+        .content-wrapper.loaded { opacity: 1; }
+        
+        .nav-link { position: relative; transition: color 0.3s; text-transform: uppercase; font-weight: 900; letter-spacing: 0.1em; }
+        .nav-link::before { content: ''; position: absolute; width: 100%; height: 100%; background: var(--neon-red); z-index: -1; transform: scaleX(0); transform-origin: right; transition: transform 0.3s ease; mix-blend-mode: exclusion; }
+        .nav-link:hover::before { transform: scaleX(1); transform-origin: left; }
+        
+        /* Mobile Menu */
+        #mobile-menu { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(0,0,0,0.98); z-index: 39; transform: translateY(-100%); transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2rem; }
+        #mobile-menu.open { transform: translateY(0); }
+        .mobile-link { font-family: 'Londrina Sketch', cursive; font-size: 3rem; color: white; text-decoration: none; transition: color 0.2s; }
+        .mobile-link:hover { color: var(--neon-red); }
 
-    <link rel="stylesheet" href="css/style.css">
+        /* Hamburger */
+        .hamburger { display: flex; flex-direction: column; justify-content: space-between; width: 24px; height: 18px; cursor: pointer; z-index: 50; }
+        .hamburger span { display: block; height: 2px; width: 100%; background: white; transition: 0.3s; }
+        .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+        .hamburger.open span:nth-child(2) { opacity: 0; }
+        .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -6px); }
+        
+        /* Glitch Title */
+        .glitch-wrapper { position: relative; display: inline-block; }
+        .glitch { font-size: clamp(3rem, 12vw, 8rem); font-weight: 900; text-transform: uppercase; position: relative; color: white; letter-spacing: -0.05em; line-height: 0.9; }
+        
+        /* Cards & Interactive */
+        .card { 
+            background: var(--glass); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            transition: all 0.2s ease-out;
+            position: relative; overflow: hidden;
+        }
+        .card:active, .card:hover { transform: scale(1.02); border-color: var(--neon-red); box-shadow: 0 10px 40px -10px rgba(255, 42, 42, 0.2); }
+        
+        .btn { @apply font-bold py-3 px-6 transition-all duration-300 relative overflow-hidden font-mono uppercase tracking-wider cursor-pointer select-none; }
+        .btn-primary { background: transparent; color: var(--neon-red); border: 1px solid var(--neon-red); }
+        .btn-primary:hover, .btn-primary:active { background: var(--neon-red); color: black; box-shadow: 0 0 20px var(--neon-red); }
+        .btn-secondary { @apply bg-gray-800 text-white hover:bg-gray-700 border border-gray-700; }
+        .btn-danger { @apply border border-red-600 text-red-600 hover:bg-red-600 hover:text-white; }
+
+        /* Marquee */
+        .marquee-strip { background: var(--neon-red); color: black; padding: 8px 0; transform: rotate(-1deg) scale(1.05); box-shadow: 0 0 25px var(--neon-red); margin: 40px 0; border-top: 2px solid white; border-bottom: 2px solid white; overflow: hidden; }
+        .marquee-content { white-space: nowrap; animation: marquee 20s linear infinite; font-family: 'JetBrains Mono'; font-weight: 700; font-size: 1.2rem; }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        /* Toasts */
+        #toast-container { position: fixed; top: 20px; right: 20px; left: 20px; md:left: auto; z-index: 100; display: flex; flex-direction: column; gap: 10px; pointer-events: none; align-items: flex-end; }
+        .toast { pointer-events: auto; background: black; border-left: 4px solid var(--neon-red); border-top: 1px solid #333; border-right: 1px solid #333; border-bottom: 1px solid #333; color: white; padding: 15px 20px; font-family: 'JetBrains Mono'; font-size: 0.8rem; box-shadow: 0 10px 20px rgba(0,0,0,0.5); transform: translateX(120%); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); width: fit-content; max-width: 100%; }
+        .toast.show { transform: translateX(0); }
+
+        /* Layout */
+        .parallax-container { position: relative; width: 100%; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .parallax-content { position: relative; z-index: 2; }
+        .parallax-art { position: absolute; top: 0; left: 0; width: 100%; height: 120%; background-size: cover; background-position: center; z-index: 1; opacity: 0.2; filter: grayscale(100%) contrast(120%); mix-blend-mode: overlay; }
+        .modal-bg { background-color: rgba(0,0,0,0.95); backdrop-filter: blur(10px); }
+        
+        /* Input Contrast Fixes */
+        .form-input { 
+            width: 100%;
+            background-color: #1a1a1a; 
+            border: 1px solid #444;
+            padding: 0.75rem;
+            color: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+            outline: none;
+            transition: border-color 0.3s;
+            appearance: none;
+            border-radius: 0;
+        }
+        .form-input:focus { border-color: var(--neon-red); }
+        .form-input::placeholder { color: #666; }
+
+        /* Autofill Override */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px #1a1a1a inset !important;
+            -webkit-text-fill-color: white !important;
+            caret-color: white !important;
+        }
+        
+        .product-loader { @apply w-12 h-12 border-4 border-t-transparent border-red-500 rounded-full animate-spin mx-auto; }
+        .admin-tab { @apply px-4 py-2 font-mono text-xs uppercase text-gray-500 hover:text-white cursor-pointer transition-colors; }
+        .admin-tab.active { @apply text-red-500 border-b-2 border-red-500 bg-white/5; }
+
+        /* Logo Pulse Animation */
+        @keyframes logo-pulse { 0% { transform: scale(1); color: white; } 50% { transform: scale(0.95); color: var(--neon-red); } 100% { transform: scale(1); color: white; } }
+        .pulse-click { animation: logo-pulse 0.2s ease-out forwards; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-red); }
+    </style>
 </head>
-<body class="antialiased">
+<body>
 
-    <div id="demo-mode-indicator" class="hidden fixed top-0 left-0 w-full bg-yellow-500 text-black p-2 z-50 flex justify-center items-center relative">
-        <span>Demo Mode</span>
-        <button id="close-demo-bar" class="absolute top-1/2 right-4 -translate-y-1/2 text-xl font-bold leading-none">&times;</button>
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="font-graffiti text-4xl text-white animate-pulse">INITIALIZING SYSTEM</div>
+        <div class="loader-bar"></div>
+        <div class="font-mono text-xs text-red-500 mt-2">LOADING ASSETS...</div>
     </div>
 
-    <div id="cursor-dot"></div>
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
 
     <canvas class="hero-canvas"></canvas>
 
-    <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-bg hidden">
-        <div class="bg-gray-900 p-8 rounded-lg shadow-2xl w-full max-w-sm">
-            <h2 class="font-graffiti text-4xl text-center mb-6">Admin Login</h2>
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu">
+        <a href="#store" class="mobile-link" onclick="toggleMobileMenu()">STORE</a>
+        <a href="#about" class="mobile-link" onclick="toggleMobileMenu()">ORIGINS</a>
+        <a href="#poll" class="mobile-link" onclick="toggleMobileMenu()">VOTE</a>
+        <button class="mobile-link text-xl font-mono text-red-500 border border-red-500 px-6 py-2 mt-4" onclick="toggleMobileMenu(); document.getElementById('checkout-btn').click()">CART</button>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="fixed inset-0 z-[70] flex items-center justify-center modal-bg hidden opacity-0 transition-opacity duration-300 p-4">
+        <div class="bg-black border border-gray-800 p-6 md:p-8 w-full max-w-sm relative shadow-[0_0_30px_rgba(255,0,0,0.2)]">
+            <div class="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-red-500"></div>
+            <div class="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-red-500"></div>
+            <button class="absolute top-4 right-4 text-gray-500 hover:text-white" onclick="closeModal('login-modal')">✕</button>
+            <h2 class="font-graffiti text-4xl md:text-5xl text-center mb-6 text-red-500 tracking-widest">ADMIN_ACCESS</h2>
             <form id="login-form">
-                <div class="space-y-4">
-                    <input id="username" type="text" placeholder="Username" class="form-input">
-                    <input id="password" type="password" placeholder="Password" class="form-input">
-                    <button type="submit" class="w-full btn btn-primary">Login</button>
-                    <p id="login-error" class="text-red-500 text-sm text-center"></p>
+                <div class="space-y-6">
+                    <div><label class="font-mono text-xs text-gray-400 mb-1 block">IDENTIFIER</label><input id="username" type="email" class="form-input" autocomplete="off" required placeholder="admin@..."></div>
+                    <div><label class="font-mono text-xs text-gray-400 mb-1 block">KEY</label><input id="password" type="password" class="form-input" required placeholder="********"></div>
+                    <button type="submit" class="w-full btn-primary">AUTHENTICATE</button>
+                    <p id="login-error" class="text-red-500 font-mono text-xs text-center mt-2 opacity-0 transition-opacity"></p>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="smooth-wrapper">
-        <div id="smooth-content">
-            <div class="content-wrapper">
-                <header class="fixed top-0 left-0 w-full p-6 z-40 bg-black/30 backdrop-blur-sm">
-                    <nav class="container mx-auto flex justify-between items-center">
-                        <div id="logo" class="font-graffiti text-4xl text-white cursor-pointer select-none">9L</div>
-                        <div class="hidden md:flex items-center space-x-8">
-                            <a href="#store" class="nav-link text-lg">Store</a>
-                            <a href="#about" class="nav-link text-lg">About</a>
-                            <a href="#poll" class="nav-link text-lg">Vote</a>
-                        </div>
-                        <div class="relative">
-                            <button id="cart-button" class="text-white">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                                <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
-                            </button>
-                        </div>
-                    </nav>
-                </header>
-
-                <div id="cart-panel" class="fixed top-0 right-0 h-full w-full md:w-1/3 bg-gray-900/80 backdrop-blur-lg shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-8 flex flex-col">
-                    <div class="flex justify-between items-center mb-8">
-                        <h2 class="text-3xl font-graffiti">Your Cart</h2>
-                        <button id="close-cart-button" class="text-white text-3xl leading-none">&times;</button>
-                    </div>
-                    <div id="cart-items" class="space-y-4 overflow-y-auto flex-grow"></div>
-                    <div class="mt-auto pt-4">
-                        <div class="flex justify-between text-xl font-bold mb-4">
-                            <span>Total:</span>
-                            <span id="cart-total">$0.00</span>
-                        </div>
-                        <button class="w-full btn btn-primary">Checkout</button>
-                    </div>
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="fixed inset-0 z-[70] flex items-center justify-center modal-bg hidden opacity-0 transition-opacity duration-300 p-4">
+        <div class="bg-black border border-white/20 p-6 md:p-8 w-full max-w-md relative overflow-y-auto max-h-[90vh]">
+            <h2 class="font-graffiti text-4xl mb-6 text-white">SECURE_CHECKOUT</h2>
+            <div class="space-y-4 font-mono text-sm">
+                <div class="border-b border-gray-800 pb-4 mb-4">
+                    <div class="flex justify-between text-gray-400"><span>SUBTOTAL</span><span id="checkout-subtotal">$0.00</span></div>
+                    <div class="flex justify-between text-gray-400 mt-2"><span>SHIPPING</span><span class="text-green-400">FREE</span></div>
+                    <div class="flex justify-between text-xl text-white font-bold mt-4"><span>TOTAL</span><span id="checkout-total">$0.00</span></div>
                 </div>
-
-                <main>
-                    <section id="hero" class="dynamic-screen flex items-center justify-center relative">
-                        <div class="text-center z-10 relative">
-                            <div class="mx-auto w-64 md:w-80">
-                                <img src="images/lt.png" alt="9 Lives Logo" class="w-full">
-                            </div>
-                            <p class="text-xl mt-8 max-w-lg mx-auto">Creative streetwear for the modern soul. Inspired by the streets, perfected for you.</p>
-                        </div>
-                    </section>
-
-                    <div class="parallax-container">
-                        <div class="parallax-art" style="background-image: url('https://placehold.co/1920x1080/000000/111111?text=Dimension+1');"></div>
-                        <section id="store" class="parallax-content py-20 bg-black/50">
-                            <div class="container mx-auto px-6">
-                                <h2 class="text-5xl font-graffiti text-center mb-12">The Drop</h2>
-                                <div id="product-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[300px]"></div>
-                            </div>
-                        </section>
+                <form id="checkout-form" class="space-y-4">
+                    <div><label class="font-mono text-xs text-gray-400 mb-1 block">EMAIL</label><input type="email" placeholder="user@example.com" class="form-input" required></div>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div><label class="font-mono text-xs text-gray-400 mb-1 block">CARD NUMBER</label><input type="text" placeholder="0000 0000 0000 0000" class="form-input" required></div>
                     </div>
-
-                    <div class="parallax-container">
-                        <section id="admin-panel" class="parallax-content py-20 bg-black/80 hidden">
-                            <div class="container mx-auto px-6">
-                                <div class="flex justify-between items-center mb-12">
-                                    <h2 class="text-5xl font-graffiti">Admin Panel</h2>
-                                    <button id="logout-btn" class="btn btn-secondary">Logout</button>
-                                </div>
-                                <div class="bg-gray-900 p-8 rounded-lg mb-12">
-                                    <h3 id="form-title" class="text-3xl font-bold mb-6">Add New Product</h3>
-                                    <form id="product-form" class="space-y-4">
-                                        <input type="hidden" id="product-id">
-                                        <div><label for="product-name" class="block mb-1">Product Name</label><input type="text" id="product-name" class="form-input" required></div>
-                                        <div><label for="product-price" class="block mb-1">Price</label><input type="number" id="product-price" class="form-input" required step="0.01"></div>
-                                        <div><label for="product-img" class="block mb-1">Image URL</label><input type="url" id="product-img" class="form-input" required></div>
-                                        <div><label for="product-desc" class="block mb-1">Description</label><textarea id="product-desc" class="form-input" rows="3"></textarea></div>
-                                        <div class="flex space-x-4 pt-4">
-                                            <button type="submit" id="save-product-btn" class="btn btn-primary flex-1">Save Product</button>
-                                            <button type="button" id="cancel-edit-btn" class="btn btn-secondary flex-1 hidden">Cancel Edit</button>
-                                        </div>
-                                    </form>
-                                </div>
-                                <h3 class="text-3xl font-bold mb-6">Manage Products</h3>
-                                <div id="admin-product-list" class="space-y-4"></div>
-                            </div>
-                        </section>
+                    <div class="grid grid-cols-2 gap-4">
+                         <div><label class="font-mono text-xs text-gray-400 mb-1 block">EXPIRY</label><input type="text" placeholder="MM/YY" class="form-input" required></div>
+                         <div><label class="font-mono text-xs text-gray-400 mb-1 block">CVC</label><input type="text" placeholder="123" class="form-input" required></div>
                     </div>
-
-                    <div class="parallax-container">
-                        <div class="parallax-art" style="background-image: url('https://placehold.co/1920x1080/000000/222222?text=Dimension+2');"></div>
-                        <section id="about" class="parallax-content py-20 bg-black/20">
-                            <div class="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
-                                <div>
-                                    <h2 class="text-5xl font-graffiti mb-6">Our Story</h2>
-                                    <p class="text-lg leading-relaxed mb-4">9 Lives was born from a love of anime, street art, and our cats. We believe clothing is a canvas, a way to tell your story without saying a word. Our designs are a mashup of Japanese pop culture and urban grit, for those who walk their own path.</p>
-                                </div>
-                                <div class="flex justify-center">
-                                    <svg class="w-full max-w-md" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><path fill="#F87171" d="M48.1,-58.9C61.4,-47.2,70.5,-30.5,73.5,-12.9C76.5,4.7,73.4,23.3,64,37.3C54.6,51.3,38.9,60.7,22.1,66.5C5.3,72.3,-12.6,74.5,-28.8,69.5C-45,64.5,-59.5,52.3,-68.2,36.9C-76.9,21.5,-80,-7,-74.5,-29.4C-69,-51.8,-55,-68.1,-38.8,-76.1C-22.6,-84.1,-4.2,-83.8,12.5,-77.5C29.2,-71.2,48.1,-58.9,48.1,-58.9Z" transform="translate(100 100)" /></svg>
-                                </div>
-                            </div>
-                        </section>
+                    <div class="grid grid-cols-1 gap-4">
+                         <div><label class="font-mono text-xs text-gray-400 mb-1 block">ZIP CODE</label><input type="text" placeholder="90210" class="form-input" required></div>
                     </div>
-
-                    <div class="parallax-container">
-                        <div class="parallax-art" style="background-image: url('https://placehold.co/1920x1080/000000/333333?text=Dimension+3');"></div>
-                        <section id="poll" class="parallax-content py-20 bg-black/50">
-                            <div class="container mx-auto px-6 text-center">
-                                <h2 class="text-5xl font-graffiti mb-4">Vote on the Next Drop!</h2>
-                                <p class="text-xl mb-12">What colorway should we do next?</p>
-                                <div id="poll-options" class="max-w-2xl mx-auto space-y-4"></div>
-                                <p id="user-id-display" class="mt-8 text-xs text-gray-500"></p>
-                            </div>
-                        </section>
-                    </div>
-                </main>
-
-                <footer class="py-12 bg-black/70 relative z-10">
-                    <div class="container mx-auto text-center">
-                        <p class="font-graffiti text-3xl">9 Lives</p>
-                        <p class="mt-4">&copy; 2025. All Rights Reserved. Stay creative.</p>
-                    </div>
-                </footer>
+                    <button type="submit" class="w-full btn-primary bg-white text-black border-white hover:bg-gray-200 hover:text-black mt-4">PAY NOW</button>
+                    <button type="button" id="cancel-checkout" class="w-full btn-secondary text-xs">CANCEL</button>
+                </form>
             </div>
         </div>
     </div>
+    
+    <div class="content-wrapper">
+        <!-- Header -->
+        <header class="fixed top-0 left-0 w-full p-4 md:p-6 z-40 bg-black/50 backdrop-blur-md border-b border-white/5">
+            <nav class="container mx-auto flex justify-between items-center">
+                <!-- LOGO TRIGGER FOR ADMIN -->
+                <div id="logo" class="font-graffiti text-4xl md:text-5xl text-white cursor-pointer select-none hover:text-red-500 transition-colors duration-200 relative group z-50">9L<span class="absolute -bottom-2 left-0 w-0 h-1 bg-red-500 transition-all duration-300 group-hover:w-full"></span></div>
+                
+                <!-- Desktop Nav -->
+                <div class="hidden md:flex items-center space-x-12">
+                    <a href="#store" class="nav-link text-sm">Store</a>
+                    <a href="#about" class="nav-link text-sm">Origins</a>
+                    <a href="#poll" class="nav-link text-sm">Vote</a>
+                </div>
 
-    <script type="module" src="js/main.js"></script>
+                <!-- Mobile Controls -->
+                <div class="flex items-center gap-4">
+                    <div class="relative group">
+                        <button id="cart-button" class="text-white hover:text-red-500 transition-colors p-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                            <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-black font-bold text-[10px] w-4 h-4 flex items-center justify-center border border-black opacity-0 transition-opacity rounded-full">0</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Hamburger Icon -->
+                    <div class="hamburger md:hidden" onclick="toggleMobileMenu()">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Cart Panel -->
+        <div id="cart-panel" class="fixed top-0 right-0 h-full w-full md:w-[450px] bg-black border-l border-gray-800 z-50 transform translate-x-full transition-transform duration-500 ease-expo p-6 md:p-8 flex flex-col pt-24 md:pt-8">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl md:text-4xl font-graffiti text-white">Cart <span class="text-red-500 text-lg font-mono">.SYS</span></h2>
+                <button id="close-cart-button" class="text-white hover:text-red-500 text-3xl font-light px-4 py-2">&times;</button>
+            </div>
+            <div id="cart-items" class="flex-grow space-y-6 overflow-y-auto pr-2 custom-scrollbar"></div>
+            <div class="border-t border-gray-800 pt-6 mt-6 bg-black pb-safe">
+                <div class="flex justify-between font-mono text-xl mb-6">
+                    <span class="text-gray-500">TOTAL</span>
+                    <span id="cart-total" class="text-white font-bold">$0.00</span>
+                </div>
+                <button id="checkout-btn" class="w-full btn-primary">INITIATE CHECKOUT</button>
+            </div>
+        </div>
+
+        <main>
+            <!-- Hero Section -->
+            <section id="hero" class="h-screen flex items-center justify-center relative overflow-hidden">
+                <div class="text-center z-10 relative mix-blend-difference px-4 w-full">
+                    <div class="glitch-wrapper">
+                        <h1 class="glitch" data-text="9 LIVES">9 LIVES</h1>
+                    </div>
+                    <p class="font-mono text-xs md:text-sm mt-6 max-w-xs md:max-w-lg mx-auto tracking-widest text-red-500 leading-relaxed">/// STREETWEAR FOR THE DISCONNECTED ///</p>
+                </div>
+                <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-50 animate-bounce pointer-events-none">
+                    <span class="font-mono text-[10px] mb-2 tracking-widest">SCROLL_DOWN</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                </div>
+            </section>
+
+            <!-- Marquee Divider -->
+            <div class="marquee-strip">
+                <div class="marquee-content">
+                    LIMITED DROPS // WORLDWIDE SHIPPING // 9 LIVES FOREVER // NO RESPAWNS // DIGITAL GHOSTS // LIMITED DROPS // WORLDWIDE SHIPPING // 9 LIVES FOREVER // NO RESPAWNS // DIGITAL GHOSTS
+                </div>
+            </div>
+
+            <!-- Store Section -->
+            <div class="parallax-container">
+                <div class="parallax-art" style="background-image: url('https://placehold.co/1920x1080/000000/111111?text=URBAN+DECAY');"></div>
+                <section id="store" class="parallax-content py-20 md:py-32"><div class="container mx-auto px-4 md:px-6"><div class="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-20 border-b border-gray-800 pb-4"><h2 class="text-5xl md:text-6xl font-graffiti">The Drop</h2><span class="font-mono text-red-500 text-xs md:text-base mt-2 md:mt-0">SEASON_01</span></div><div id="product-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12 min-h-[300px]"></div></div></section>
+            </div>
+
+            <!-- Admin Panel -->
+            <div class="parallax-container">
+                <section id="admin-panel" class="parallax-content py-20 bg-black hidden border-t border-red-900 min-h-screen">
+                    <div class="container mx-auto px-4 md:px-6">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                            <h2 class="text-4xl md:text-5xl font-graffiti text-red-500">Admin_Terminal</h2>
+                            <div class="flex gap-4">
+                                <span class="font-mono text-xs text-green-500">[ONLINE]</span>
+                                <button id="logout-btn" class="font-mono text-xs hover:text-red-500 underline">[LOGOUT]</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Tabs -->
+                        <div class="flex border-b border-gray-800 mb-8 overflow-x-auto no-scrollbar">
+                            <button class="admin-tab active whitespace-nowrap" onclick="switchTab('products')">Products</button>
+                            <button class="admin-tab whitespace-nowrap" onclick="switchTab('polls')">Polls</button>
+                            <button class="admin-tab whitespace-nowrap" onclick="switchTab('settings')">Settings</button>
+                        </div>
+
+                        <!-- 1. Products Tab -->
+                        <div id="tab-products" class="admin-content">
+                            <div class="bg-gray-900/50 p-6 md:p-8 border border-gray-800 mb-12">
+                                <h3 id="form-title" class="text-2xl font-mono font-bold mb-6 text-white">> ADD_PRODUCT</h3>
+                                <form id="product-form" class="space-y-4">
+                                    <input type="hidden" id="product-id">
+                                    <div><label class="font-mono text-xs text-gray-400 mb-1 block">NAME</label><input type="text" id="product-name" class="form-input" required></div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div><label class="font-mono text-xs text-gray-400 mb-1 block">PRICE</label><input type="number" id="product-price" class="form-input" required step="0.01"></div>
+                                        <div><label class="font-mono text-xs text-gray-400 mb-1 block">IMG_URL</label><input type="url" id="product-img" class="form-input" required></div>
+                                    </div>
+                                    <div><label class="font-mono text-xs text-gray-400 mb-1 block">AVAILABLE COLORS (Comma Separated Hex/Names)</label><input type="text" id="product-colors" class="form-input" placeholder="#ff0000, #00ff00, Black" required></div>
+                                    <div><label class="font-mono text-xs text-gray-400 mb-1 block">DESC</label><textarea id="product-desc" class="form-input" rows="3"></textarea></div>
+                                    <div class="flex items-center gap-2 p-2 bg-black/30 rounded"><input type="checkbox" id="product-lowstock" class="w-4 h-4 text-red-500 bg-gray-800 border-gray-600 rounded focus:ring-red-500 focus:ring-2"><label for="product-lowstock" class="font-mono text-xs text-gray-400 select-none cursor-pointer">MARK LOW STOCK</label></div>
+                                    <div class="flex space-x-4 pt-4"><button type="submit" id="save-product-btn" class="btn-primary flex-1">EXECUTE</button><button type="button" id="cancel-edit-btn" class="btn-secondary flex-1 hidden">CANCEL</button></div>
+                                </form>
+                            </div>
+                            <h3 class="text-2xl font-mono font-bold mb-6 pl-2">> INVENTORY</h3>
+                            <div id="admin-product-list" class="space-y-4 font-mono text-sm"></div>
+                        </div>
+
+                        <!-- 2. Polls Tab -->
+                        <div id="tab-polls" class="admin-content hidden">
+                            <div class="bg-gray-900/50 p-6 md:p-8 border border-gray-800 mb-12">
+                                <h3 class="text-2xl font-mono font-bold mb-6 text-white">> CONFIGURE_POLL</h3>
+                                <div class="space-y-6">
+                                    <div><label class="font-mono text-xs text-gray-400 mb-1 block">POLL QUESTION</label><input type="text" id="poll-question-input" class="form-input" value="Next Drop Protocol"></div>
+                                    <div id="admin-poll-options-list" class="space-y-4"></div>
+                                    <button id="add-poll-option-btn" class="btn-secondary w-full py-3 text-xs border-dashed border-gray-600">+ ADD OPTION SLOT</button>
+                                    <div class="flex flex-col md:flex-row gap-4 pt-4">
+                                        <button id="save-poll-btn" class="btn-primary flex-1">SAVE POLL CONFIG</button>
+                                        <button id="reset-votes-btn" class="btn-danger flex-1">RESET VOTES</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Settings Tab -->
+                        <div id="tab-settings" class="admin-content hidden">
+                            <div class="bg-gray-900/50 p-6 md:p-8 border border-gray-800">
+                                <h3 class="text-2xl font-mono font-bold mb-6 text-white">> SYSTEM_SETTINGS</h3>
+                                <div class="space-y-6">
+                                    <div><label class="font-mono text-xs text-gray-400 mb-1 block">STRIPE_PUBLIC_KEY</label><input type="text" id="setting-stripe-key" class="form-input" placeholder="pk_test_..."></div>
+                                    <div><label class="font-mono text-xs text-gray-400 mb-1 block">PAYPAL_CLIENT_ID</label><input type="text" id="setting-paypal-id" class="form-input" placeholder="client_id..."></div>
+                                    <div><label class="font-mono text-xs text-gray-400 mb-1 block">CONTACT_EMAIL</label><input type="email" id="setting-email" class="form-input" value="support@9livesstreet.com"></div>
+                                    <button id="save-settings-btn" class="btn-primary w-full mt-4">UPDATE SETTINGS</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+            </div>
+
+            <!-- About Section -->
+            <div class="parallax-container">
+                 <div class="parallax-art" style="background-image: url('https://placehold.co/1920x1080/000000/222222?text=CONCRETE+JUNGLE');"></div>
+                <section id="about" class="parallax-content py-20 md:py-32 bg-black/80 backdrop-blur-sm"><div class="container mx-auto px-4 md:px-6 grid md:grid-cols-2 gap-12 md:gap-20 items-center"><div><div class="w-16 h-1 bg-red-500 mb-8"></div><h2 class="text-5xl md:text-6xl font-graffiti mb-8">Origins</h2><p class="text-base md:text-lg leading-relaxed font-mono text-gray-400">9 Lives was born from the static between channels. A mashup of anime nostalgia, street art rebellion, and the digital void. We don't just sell clothes; we sell armor for the modern dystopia.</p><p class="mt-6 font-mono text-red-500 text-xs md:text-sm">EST. 2025 // TOKYO - NY - CYBERSPACE</p></div><div class="flex justify-center relative"><div class="absolute inset-0 border-2 border-red-500 transform translate-x-4 translate-y-4 hidden md:block"></div><svg class="w-full max-w-xs md:max-w-md relative z-10 filter grayscale contrast-125" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><path fill="#333" d="M48.1,-58.9C61.4,-47.2,70.5,-30.5,73.5,-12.9C76.5,4.7,73.4,23.3,64,37.3C54.6,51.3,38.9,60.7,22.1,66.5C5.3,72.3,-12.6,74.5,-28.8,69.5C-45,64.5,-59.5,52.3,-68.2,36.9C-76.9,21.5,-80,-7,-74.5,-29.4C-69,-51.8,-55,-68.1,-38.8,-76.1C-22.6,-84.1,-4.2,-83.8,12.5,-77.5C29.2,-71.2,48.1,-58.9,48.1,-58.9Z" transform="translate(100 100)" /></svg></div></div></section>
+            </div>
+
+            <!-- Poll Section -->
+            <div class="parallax-container">
+                 <div class="parallax-art" style="background-image: url('https://placehold.co/1920x1080/000000/333333?text=NEON+NIGHTS');"></div>
+                <section id="poll" class="parallax-content py-20 md:py-32"><div class="container mx-auto px-4 md:px-6 text-center"><h2 class="text-4xl md:text-5xl font-graffiti mb-4" id="poll-title-display">Next Drop Protocol</h2><p class="font-mono text-red-500 mb-12 uppercase tracking-widest text-xs md:text-base">/// Community Override Initiated ///</p><div id="poll-options" class="max-w-2xl mx-auto space-y-4"></div><p id="user-id-display" class="mt-8 font-mono text-[10px] text-gray-600 uppercase tracking-widest"></p></div></section>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="py-16 bg-black border-t border-gray-900 relative z-10">
+            <div class="container mx-auto px-6 text-center flex flex-col items-center">
+                <div class="mb-12 w-full max-w-md">
+                    <p class="font-mono text-xs text-gray-500 mb-2 text-left">JOIN THE RESISTANCE (NEWSLETTER)</p>
+                    <form class="flex border border-gray-700"><input type="email" placeholder="ENTER_EMAIL" class="flex-1 bg-[#1a1a1a] p-3 font-mono text-sm outline-none text-white"><button type="button" class="bg-white text-black px-6 font-bold font-mono text-sm hover:bg-red-500 hover:text-white transition-colors" onclick="document.dispatchEvent(new CustomEvent('show-toast', {detail: {msg: 'SUBSCRIBED TO DATABASE'}}))">JOIN</button></form>
+                </div>
+                <p class="font-graffiti text-5xl md:text-6xl text-gray-800 select-none hover:text-red-900 transition-colors cursor-default mb-6">9 LIVES</p>
+                <div class="flex space-x-8 font-mono text-xs text-gray-500"><a href="#" class="hover:text-red-500">INSTAGRAM</a><a href="#" class="hover:text-red-500">TWITTER</a><a href="#" class="hover:text-red-500">DISCORD</a></div>
+                <p class="mt-8 font-mono text-[10px] text-gray-700">&copy; 2025 ALL RIGHTS RESERVED // SYSTEM ONLINE <button id="secret-admin-footer" class="opacity-20 hover:opacity-100 transition-opacity text-red-500 ml-2 p-2">[π]</button></p>
+            </div>
+        </footer>
+    </div>
+
+    <script type="module">
+        // --- UTILS ---
+        window.toggleMobileMenu = () => {
+            document.getElementById('mobile-menu').classList.toggle('open');
+            document.querySelector('.hamburger').classList.toggle('open');
+        };
+        
+        window.closeModal = (id) => {
+            const m = document.getElementById(id);
+            m.classList.add('opacity-0');
+            setTimeout(() => m.classList.add('hidden'), 300);
+        };
+
+        window.switchTab = (tabName) => {
+            document.querySelectorAll('.admin-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            document.querySelectorAll('.admin-tab').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+        };
+
+        // ** INIT INTERACTIONS **
+        const initInteractions = () => {
+            const cartPanel = document.getElementById('cart-panel');
+            const cartButton = document.getElementById('cart-button');
+            const closeCartButton = document.getElementById('close-cart-button');
+            const checkoutBtn = document.getElementById('checkout-btn');
+            const checkoutModal = document.getElementById('checkout-modal');
+            const cancelCheckout = document.getElementById('cancel-checkout');
+            const checkoutForm = document.getElementById('checkout-form');
+            const logo = document.getElementById('logo');
+            const loginModal = document.getElementById('login-modal');
+            const secretFooter = document.getElementById('secret-admin-footer');
+            const logoutBtn = document.getElementById('logout-btn');
+            const loginForm = document.getElementById('login-form');
+            const adminPanel = document.getElementById('admin-panel');
+            const toastContainer = document.getElementById('toast-container');
+
+            // 1. Admin Trigger
+            let logoClicks = 0;
+            let clickTimer;
+            const openAdmin = () => {
+                logoClicks = 0;
+                loginModal.classList.remove('hidden');
+                setTimeout(() => loginModal.classList.remove('opacity-0'), 10);
+                document.dispatchEvent(new CustomEvent('show-toast', {detail: {msg: 'ADMIN_GATEWAY_OPENED'}}));
+            };
+            logo.addEventListener('click', (e) => {
+                e.preventDefault();
+                clearTimeout(clickTimer);
+                logoClicks++;
+                logo.style.transform = 'scale(0.95)'; logo.style.color = '#ff2a2a';
+                setTimeout(() => { logo.style.transform = 'scale(1)'; logo.style.color = ''; }, 150);
+                if (logoClicks >= 5) openAdmin();
+                else clickTimer = setTimeout(() => logoClicks = 0, 1000);
+            });
+            secretFooter.addEventListener('click', openAdmin);
+            window.addEventListener('keydown', (e) => { if (e.ctrlKey && e.shiftKey && e.key === '9') openAdmin(); });
+
+            // 2. Modal Close
+            [loginModal, checkoutModal].forEach(m => m.addEventListener('click', (e) => {
+                if (e.target === m) window.closeModal(m.id);
+            }));
+
+            // 3. Toast
+            document.addEventListener('show-toast', (e) => {
+                const el = document.createElement('div'); el.className = 'toast'; el.textContent = `> ${e.detail.msg}`;
+                toastContainer.appendChild(el); void el.offsetWidth; el.classList.add('show');
+                setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, 3000);
+            });
+
+            // 4. Cart
+            cartButton.addEventListener('click', () => cartPanel.classList.remove('translate-x-full'));
+            closeCartButton.addEventListener('click', () => cartPanel.classList.add('translate-x-full'));
+            checkoutBtn.addEventListener('click', () => { cartPanel.classList.add('translate-x-full'); setTimeout(() => { checkoutModal.classList.remove('hidden'); setTimeout(() => checkoutModal.classList.remove('opacity-0'), 50); }, 300); });
+            cancelCheckout.addEventListener('click', () => window.closeModal('checkout-modal'));
+            checkoutForm.addEventListener('submit', (e) => { e.preventDefault(); window.closeModal('checkout-modal'); document.dispatchEvent(new CustomEvent('show-toast', {detail:{msg: 'TRANSACTION_COMPLETE'}})); });
+
+            // 5. Auth
+            logoutBtn.addEventListener('click', () => { adminPanel.classList.add('hidden'); document.dispatchEvent(new CustomEvent('show-toast', {detail:{msg: 'SESSION_TERMINATED'}})); });
+            loginForm.addEventListener('submit', (e) => { 
+                e.preventDefault(); 
+                const u = e.target.username.value, p = e.target.password.value;
+                if (u === 'admin@9livesstreet.com' && p === 'txh1l1n1o!') { 
+                    window.closeModal('login-modal');
+                    setTimeout(() => adminPanel.classList.remove('hidden'), 300);
+                    e.target.reset(); document.getElementById('login-error').style.opacity = '0';
+                    document.dispatchEvent(new CustomEvent('show-toast', {detail:{msg: 'ACCESS_GRANTED'}}));
+                } else { 
+                    const err = document.getElementById('login-error'); err.textContent = 'ACCESS DENIED'; err.style.opacity = '1'; 
+                } 
+            });
+        };
+
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initInteractions);
+        else initInteractions();
+
+        // --- MAIN APP LOGIC ---
+        const loadScripts = Promise.all([
+            import('https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js'),
+            import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js'),
+            import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js'),
+            import('https://cdn.skypack.dev/three@0.129.0'),
+            import('https://cdn.skypack.dev/three@0.129.0/examples/jsm/postprocessing/EffectComposer.js'),
+            import('https://cdn.skypack.dev/three@0.129.0/examples/jsm/postprocessing/RenderPass.js'),
+            import('https://cdn.skypack.dev/three@0.129.0/examples/jsm/postprocessing/UnrealBloomPass.js'),
+            import('https://cdn.skypack.dev/three@0.129.0/examples/jsm/postprocessing/ShaderPass.js'),
+            import('https://cdn.skypack.dev/gsap@3.9.1'),
+            import('https://cdn.skypack.dev/gsap@3.9.1/ScrollTrigger'),
+        ]);
+
+        loadScripts.then(([
+            firebaseApp, firebaseAuth, firestore, THREE,
+            { EffectComposer }, { RenderPass }, { UnrealBloomPass }, { ShaderPass },
+            { gsap }, { ScrollTrigger },
+        ]) => {
+
+            // Hide Preloader
+            const preloader = document.getElementById('preloader');
+            preloader.style.opacity = '0';
+            setTimeout(() => preloader.style.visibility = 'hidden', 500);
+            document.querySelector('.content-wrapper').classList.add('loaded');
+
+            window.THREE = THREE;
+            gsap.registerPlugin(ScrollTrigger);
+
+            // Config
+            const isFirebaseEnabled = typeof __firebase_config !== 'undefined';
+            let app, db, auth, userId, productsColRef, pollDocRef, settingsDocRef;
+            let localProducts = [], localPollData = null, localSettings = {}, localCart = [];
+
+            const defaultPoll = {
+                question: "Next Drop Protocol",
+                options: [
+                    { id: 'opt_1', name: 'CYBER PINK', color: '#ff2a2a', votes: 42 },
+                    { id: 'opt_2', name: 'TOXIC GREEN', color: '#34d399', votes: 28 },
+                    { id: 'opt_3', name: 'GLACIER BLUE', color: '#2a2aff', votes: 15 },
+                    { id: 'opt_4', name: 'SOLAR ORANGE', color: '#fb923c', votes: 33 }
+                ]
+            };
+
+            // Firebase Init
+            if (isFirebaseEnabled) {
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const firebaseConfig = JSON.parse(__firebase_config);
+                try {
+                    app = firebaseApp.initializeApp(firebaseConfig);
+                    db = firestore.getFirestore(app);
+                    auth = firebaseAuth.getAuth(app);
+                    productsColRef = firestore.collection(db, `artifacts/${appId}/public/data/products`);
+                    pollDocRef = firestore.doc(db, `artifacts/${appId}/public/data/poll_config`, 'current_poll');
+                    settingsDocRef = firestore.doc(db, `artifacts/${appId}/public/data/settings`, 'general');
+                    
+                    firebaseAuth.onAuthStateChanged(auth, async (user) => {
+                        if (user) { userId = user.uid; } 
+                        else { 
+                            try { if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await firebaseAuth.signInWithCustomToken(auth, __initial_auth_token); else await firebaseAuth.signInAnonymously(auth); } 
+                            catch (error) { userId = `guest-${crypto.randomUUID()}`; } 
+                        }
+                        const uidEl = document.getElementById('user-id-display');
+                        if(uidEl) uidEl.textContent = `ID: ${userId.substring(0,8)}...`;
+                        setupApp();
+                    });
+                } catch (e) { console.error("Connection Error:", e); }
+            } else {
+                userId = `sim-${crypto.randomUUID()}`;
+                const uidEl = document.getElementById('user-id-display');
+                if(uidEl) uidEl.textContent = `SIMULATION_MODE`;
+                setupApp();
+            }
+            
+            async function setupApp() {
+                if (isFirebaseEnabled) { await seedInitialData(); setupStore(); setupCart(); setupPoll(); setupSettings(); } 
+                else { seedLocalData(); setupStore(); setupCart(); setupPoll(); setupSettings(); }
+                setupAdminLogic(); setupAnimations(); init3DBackground();
+            }
+
+            // Seeding
+            function getPlaceholderProducts() {
+                return [
+                    { id: 'prod_01', name: 'Drift Tee // V1', price: 48.00, img: 'https://placehold.co/600x800/050505/ff2a2a?text=DRIFT+V1', desc: 'Phase into reality. 100% Cotton. Glitch print.', lowStock: false, colors: ['#ff2a2a', '#000000'] },
+                    { id: 'prod_02', name: 'Null_Pointer Hoodie', price: 95.00, img: 'https://placehold.co/600x800/050505/2a2aff?text=NULL_PTR', desc: 'Heavyweight. Embroidered errors. Thermal lining.', lowStock: true, colors: ['#2a2aff', '#333333'] },
+                    { id: 'prod_03', name: 'Tactical Cargo', price: 130.00, img: 'https://placehold.co/600x800/050505/333333?text=TACTICAL', desc: 'Ripstop fabric. 6 Pockets. Water resistant.', lowStock: false, colors: ['#333333', '#555555'] },
+                ];
+            }
+            async function seedInitialData() {
+                const snapshot = await firestore.getDocs(productsColRef);
+                if (snapshot.empty) {
+                    const batch = firestore.writeBatch(db);
+                    getPlaceholderProducts().forEach(p => { const { id, ...data } = p; const docRef = firestore.doc(productsColRef, id); batch.set(docRef, data); });
+                    await batch.commit();
+                }
+                const pSnap = await firestore.getDoc(pollDocRef);
+                if(!pSnap.exists()) await firestore.setDoc(pollDocRef, defaultPoll);
+            }
+            function seedLocalData() {
+                localProducts = getPlaceholderProducts();
+                localPollData = JSON.parse(JSON.stringify(defaultPoll));
+            }
+
+            // Store
+            function setupStore() {
+                const productList = document.getElementById('product-list');
+                productList.innerHTML = `<div class="product-loader col-span-full"></div>`;
+                if (isFirebaseEnabled) {
+                    firestore.onSnapshot(productsColRef, (snapshot) => { const p = []; snapshot.forEach(d => p.push({ id: d.id, ...d.data() })); renderProducts(p); renderAdminProductList(p); });
+                } else { renderProducts(localProducts); renderAdminProductList(localProducts); }
+            }
+            function renderProducts(products) {
+                const productList = document.getElementById('product-list');
+                if (!products || products.length === 0) { productList.innerHTML = `<p class="text-center col-span-full font-mono text-gray-500">NO_DATA_FOUND</p>`; return; }
+                productList.innerHTML = products.map(p => {
+                    const colorBubbles = (p.colors || []).map(c => 
+                        `<span class="w-4 h-4 rounded-full border border-white/30" style="background-color: ${c};" title="${c}"></span>`
+                    ).join('');
+                    return `
+                    <div class="card flex flex-col group h-full">
+                        <div class="relative overflow-hidden aspect-[3/4]">
+                            <img src="${p.img}" alt="${p.name}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0" onerror="this.onerror=null;this.src='https://placehold.co/600x800/111/fff?text=ERR';">
+                            ${p.lowStock ? '<div class="absolute top-2 right-2 bg-red-500 text-black text-[10px] font-mono px-2 py-1 font-bold animate-pulse">LOW STOCK</div>' : ''}
+                            <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center backdrop-blur-sm gap-3 p-4">
+                                <div class="flex gap-2 mb-2">
+                                    <button class="w-8 h-8 border border-white text-white hover:bg-white hover:text-black font-mono text-xs transition-colors">S</button>
+                                    <button class="w-8 h-8 border border-white text-white hover:bg-white hover:text-black font-mono text-xs transition-colors">M</button>
+                                    <button class="w-8 h-8 border border-white text-white hover:bg-white hover:text-black font-mono text-xs transition-colors">L</button>
+                                </div>
+                                <button data-product-id='${JSON.stringify(p)}' class="add-to-cart-btn btn-primary bg-black w-full max-w-[140px]">ADD CART</button>
+                            </div>
+                        </div>
+                        <div class="p-4 md:p-6 flex-grow flex flex-col border-t border-gray-800 relative z-10 bg-black/80">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="text-lg md:text-xl font-bold font-mono uppercase truncate pr-2 w-2/3">${p.name}</h3>
+                                <p class="text-red-500 font-mono">$${Number(p.price).toFixed(2)}</p>
+                            </div>
+                            <div class="flex gap-1 mb-3 h-4">${colorBubbles}</div>
+                            <p class="text-gray-500 text-[10px] md:text-xs font-mono mb-4 line-clamp-2">${p.desc || 'No description.'}</p>
+                        </div>
+                    </div>`
+                }).join('');
+                document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const product = JSON.parse(e.target.dataset.productId);
+                        if (isFirebaseEnabled) {
+                            const cartDocRef = firestore.doc(db, `artifacts/${typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'}/users/${userId}/cart`, product.id);
+                            firestore.runTransaction(db, async (t) => { const d = await t.get(cartDocRef); if (!d.exists()) { t.set(cartDocRef, { ...product, quantity: 1 }); } else { t.update(cartDocRef, { quantity: d.data().quantity + 1 }); } }).then(() => document.dispatchEvent(new CustomEvent('show-toast', {detail:{msg: 'ITEM_ADDED'}}))).catch(console.error);
+                        } else {
+                            const existingItem = localCart.find(item => item.id === product.id);
+                            if (existingItem) { existingItem.quantity++; } else { localCart.push({ ...product, quantity: 1 }); }
+                            renderCart(localCart);
+                            document.dispatchEvent(new CustomEvent('show-toast', {detail:{msg: 'ITEM_ADDED (LOCAL)'}}));
+                        }
+                    });
+                });
+            }
+
+            // Cart
+            function setupCart() {
+                if (isFirebaseEnabled) {
+                    const cartColRef = firestore.collection(db, `artifacts/${typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'}/users/${userId}/cart`);
+                    firestore.onSnapshot(cartColRef, (snapshot) => { const i = []; snapshot.forEach(d => i.push({ id: d.id, ...d.data() })); renderCart(i); });
+                } else { renderCart(localCart); }
+            }
+            function renderCart(items) {
+                const c = document.getElementById('cart-items'), t = document.getElementById('cart-count'), o = document.getElementById('cart-total');
+                const sub = document.getElementById('checkout-subtotal'), tot = document.getElementById('checkout-total');
+                c.innerHTML = items.length === 0 ? '<p class="text-gray-600 font-mono text-center mt-10 text-sm">CART_EMPTY // ADD_ITEMS</p>' : items.map(i => `
+                    <div class="flex items-center justify-between border-b border-gray-800 pb-4">
+                        <img src="${i.img}" class="w-14 h-16 object-cover border border-gray-700">
+                        <div class="flex-1 mx-4"><p class="font-bold font-mono text-xs md:text-sm uppercase truncate max-w-[120px]">${i.name}</p><p class="text-xs text-red-500 font-mono mt-1">$${Number(i.price).toFixed(2)} x ${i.quantity}</p></div>
+                        <button data-item-id="${i.id}" class="remove-from-cart-btn text-gray-500 hover:text-red-500 font-mono text-xs p-2">[DEL]</button>
+                    </div>`).join('');
+                c.querySelectorAll('.remove-from-cart-btn').forEach(b => b.addEventListener('click', async e => {
+                    const itemId = e.target.dataset.itemId;
+                    if (isFirebaseEnabled) { await firestore.deleteDoc(firestore.doc(db, `artifacts/${typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'}/users/${userId}/cart`, itemId)); }
+                    else { localCart = localCart.filter(item => item.id !== itemId); renderCart(localCart); }
+                }));
+                const total = items.reduce((s, i) => s + (i.price * i.quantity), 0); const qty = items.reduce((s, i) => s + i.quantity, 0);
+                t.textContent = qty; t.style.opacity = qty > 0 ? '1' : '0'; o.textContent = `$${total.toFixed(2)}`; if(sub) sub.textContent = `$${total.toFixed(2)}`; if(tot) tot.textContent = `$${total.toFixed(2)}`;
+            }
+
+            // Poll
+            function setupPoll() {
+                if (isFirebaseEnabled) {
+                    firestore.onSnapshot(pollDocRef, (doc) => { if (doc.exists()) renderPoll(doc.data()); });
+                } else { renderPoll(localPollData); renderAdminPollEditor(localPollData); }
+            }
+            function renderPoll(pollData) {
+                document.getElementById('poll-title-display').textContent = pollData.question;
+                const c = document.getElementById('poll-options'); 
+                const t = pollData.options.reduce((s, o) => s + (o.votes || 0), 0);
+                c.innerHTML = pollData.options.map(o => { 
+                    const v = o.votes || 0, p = t > 0 ? (v / t) * 100 : 0; 
+                    // Check if valid CSS color, otherwise treat as name and don't use inline style
+                    const isHex = /^#[0-9A-F]{6}$/i.test(o.color);
+                    const colorStyle = isHex || o.color.includes('rgb') ? `background-color: ${o.color}` : '';
+                    const colorClass = !colorStyle ? o.color : '';
+                    
+                    return `<div class="poll-option border border-gray-800 p-4 bg-black/50 hover:border-white transition-colors">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 ${colorClass} mr-3 shadow-[0_0_10px_currentColor]" style="${colorStyle}"></div>
+                                <span class="font-mono font-bold text-xs md:text-sm tracking-widest uppercase">${o.name}</span>
+                            </div>
+                            <button data-poll-option-id="${o.id}" class="vote-btn border border-red-500 text-red-500 hover:bg-red-500 hover:text-black px-4 py-1 text-[10px] md:text-xs font-mono transition-all uppercase">INITIATE</button>
+                        </div>
+                        <div class="w-full bg-gray-900 h-1 mt-2"><div class="${colorClass} h-full transition-all duration-1000 ease-out shadow-[0_0_10px_currentColor]" style="width: ${p}%; ${colorStyle}"></div></div>
+                        <div class="flex justify-between mt-1"><span class="text-[10px] text-gray-600 font-mono">STATUS: ACTIVE</span><span class="text-[10px] text-gray-400 font-mono">${v} VOTES</span></div>
+                    </div>`; 
+                }).join('');
+                c.querySelectorAll('.vote-btn').forEach(b => b.addEventListener('click', async (e) => {
+                    const oid = e.target.dataset.pollOptionId;
+                    if (isFirebaseEnabled) {
+                        try { await firestore.runTransaction(db, async (t) => { const d = await t.get(pollDocRef); if (!d.exists()) throw "!"; const p = d.data(); const idx = p.options.findIndex(opt => opt.id === oid); if(idx !== -1) { p.options[idx].votes = (p.options[idx].votes || 0) + 1; t.update(pollDocRef, { options: p.options }); } }); document.dispatchEvent(new CustomEvent('show-toast', {detail:{msg: 'VOTE_REGISTERED'}})); } catch (err) { console.error(err); }
+                    } else {
+                        const idx = localPollData.options.findIndex(opt => opt.id === oid);
+                        if(idx !== -1) localPollData.options[idx].votes = (localPollData.options[idx].votes || 0) + 1;
+                        renderPoll(localPollData); document.dispatchEvent(new CustomEvent('show-toast', {detail:{msg: 'VOTE_REGISTERED (LOCAL)'}}));
+                    }
+                }));
+                if(document.getElementById('poll-question-input')) renderAdminPollEditor(pollData);
+            }
+
+            // Admin Functions
+            function setupAdminLogic() {
+                const productForm = document.getElementById('product-form');
+                productForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const id = document.getElementById('product-id').value;
+                    const colorsVal = document.getElementById('product-colors').value;
+                    const pData = { 
+                        name: document.getElementById('product-name').value, 
+                        price: parseFloat(document.getElementById('product-price').value), 
+                        img: document.getElementById('product-img').value, 
+                        desc: document.getElementById('product-desc').value,
+                        lowStock: document.getElementById('product-lowstock').checked,
+                        colors: colorsVal ? colorsVal.split(',').map(s => s.trim()) : []
+                    };
+                    if (isFirebaseEnabled) { if (id) await firestore.updateDoc(firestore.doc(productsColRef, id), pData); else await firestore.addDoc(productsColRef, pData); } 
+                    else { if (id) { const i = localProducts.findIndex(x => x.id === id); if (i !== -1) localProducts[i] = { ...localProducts[i], ...pData }; } else { localProducts.push({ id: `loc_${Date.now()}`, ...pData }); } renderProducts(localProducts); renderAdminProductList(localProducts); }
+                    resetProductForm(); document.dispatchEvent(new CustomEvent('show-toast', {detail:{msg: 'DATABASE_UPDATED'}}));
+                });
+                document.getElementById('cancel-edit-btn').addEventListener('click', resetProductForm);
+
+                document.getElementById('save-poll-btn').addEventListener('click', async () => {
+                    const q = document.getElementById('poll-question-input').value;
+                    const optEls = document.querySelectorAll('.admin-poll-option');
+                    const newOptions = Array.from(optEls).map(el => ({
+                        id: el.dataset.id,
+                        name: el.querySelector('.poll-name-input').value,
+                        color: el.querySelector('.poll-color-input').value,
+                        votes: parseInt(el.dataset.votes) || 0
+                    }));
+                    const newData = { question: q, options: newOptions };
+                    if(isFirebaseEnabled) { await firestore.setDoc(pollDocRef, newData); }
+                    else { localPollData = newData; renderPoll(localPollData); }
+                    document.dispatchEvent(new CustomEvent('show-toast', {detail:{msg: 'POLL_CONFIG_SAVED'}}));
+                });
+                
+                document.getElementById('add-poll-option-btn').addEventListener('click', () => {
+                    const list = document.getElementById('admin-poll-options-list');
+                    const id = `opt_${Date.now()}`;
+                    list.innerHTML += createAdminPollOptionHTML({id, name: 'NEW OPTION', color: '#666666', votes: 0});
+                    // Rebind delete listeners
+                    list.querySelectorAll('.delete-option-btn').forEach(btn => btn.addEventListener('click', e => e.target.closest('.admin-poll-option').remove()));
+                    // Rebind preview listeners
+                    list.querySelectorAll('.poll-color-input').forEach(inp => inp.addEventListener('input', e => {
+                        e.target.parentElement.querySelector('.color-preview').style.backgroundColor = e.target.value;
+                    }));
+                });
+                
+                document.getElementById('reset-votes-btn').addEventListener('click', async () => {
+                    if(!confirm("RESET ALL VOTE COUNTS?")) return;
+                    if(isFirebaseEnabled) {
+                        const d = (await firestore.getDoc(pollDocRef)).data();
+                        d.options.forEach(o => o.votes = 0);
+                        await firestore.updateDoc(pollDocRef, { options: d.options });
+                    } else { localPollData.options.forEach(o => o.votes = 0); renderPoll(localPollData); }
+                    document.dispatchEvent(new CustomEvent('show-toast', {detail:{msg: 'VOTES_PURGED'}}));
+                });
+
+                document.getElementById('save-settings-btn').addEventListener('click', async () => {
+                    const sData = {
+                        stripeKey: document.getElementById('setting-stripe-key').value,
+                        paypalId: document.getElementById('setting-paypal-id').value,
+                        email: document.getElementById('setting-email').value
+                    };
+                    if(isFirebaseEnabled) await firestore.setDoc(settingsDocRef, sData);
+                    else localSettings = sData;
+                    document.dispatchEvent(new CustomEvent('show-toast', {detail:{msg: 'SETTINGS_SECURED'}}));
+                });
+            }
+
+            function renderAdminProductList(products) {
+                const listEl = document.getElementById('admin-product-list');
+                listEl.innerHTML = products.map(p => `
+                    <div class="bg-black border border-gray-800 p-4 flex flex-col md:flex-row md:items-center justify-between group hover:border-red-500 transition-colors gap-3"> 
+                        <div class="flex items-center gap-4">
+                            <img src="${p.img}" class="w-10 h-10 object-cover border border-gray-700">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-gray-300 group-hover:text-white text-xs uppercase tracking-wider">${p.name}</span>
+                                <div class="flex items-center gap-2 mt-1"><div class="w-1.5 h-1.5 ${p.lowStock ? 'bg-red-500' : 'bg-green-500'} rounded-full animate-pulse"></div><span class="text-[10px] text-gray-500">$${p.price}</span></div>
+                            </div>
+                        </div> 
+                        <div class="flex gap-4 self-end md:self-auto">
+                            <button data-product-id='${p.id}' class="edit-btn text-blue-400 hover:text-white text-xs font-mono uppercase">[EDIT]</button>
+                            <button data-product-id="${p.id}" class="delete-btn text-red-500 hover:text-white text-xs font-mono uppercase">[DEL]</button>
+                        </div>
+                    </div>`).join('');
+                listEl.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', async e => {
+                    const pid = e.target.dataset.productId; if (confirm('CONFIRM DELETION?')) { if (isFirebaseEnabled) await firestore.deleteDoc(firestore.doc(productsColRef, pid)); else { localProducts = localProducts.filter(p => p.id !== pid); renderProducts(localProducts); renderAdminProductList(localProducts); } }
+                }));
+                listEl.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', async e => {
+                    const id = e.target.dataset.productId;
+                    let data = isFirebaseEnabled ? (await firestore.getDoc(firestore.doc(productsColRef, id))).data() : localProducts.find(p => p.id === id);
+                    if (data) { 
+                        document.getElementById('form-title').innerText = '> EDIT_PRODUCT'; document.getElementById('product-id').value = id; 
+                        document.getElementById('product-name').value = data.name; document.getElementById('product-price').value = data.price; 
+                        document.getElementById('product-img').value = data.img; document.getElementById('product-desc').value = data.desc || ''; 
+                        document.getElementById('product-colors').value = (data.colors || []).join(', ');
+                        document.getElementById('product-lowstock').checked = data.lowStock || false;
+                        document.getElementById('cancel-edit-btn').classList.remove('hidden'); window.scrollTo({ top: document.getElementById('admin-panel').offsetTop, behavior: 'smooth' }); 
+                    }
+                }));
+            }
+            function resetProductForm() { document.getElementById('form-title').innerText = '> ADD_PRODUCT'; document.getElementById('product-form').reset(); document.getElementById('product-id').value = ''; document.getElementById('cancel-edit-btn').classList.add('hidden'); }
+
+            function renderAdminPollEditor(data) {
+                document.getElementById('poll-question-input').value = data.question;
+                const list = document.getElementById('admin-poll-options-list');
+                // Always rebuild list to ensure event listeners are fresh and order is correct
+                if(document.activeElement.tagName !== 'INPUT') {
+                    list.innerHTML = data.options.map(o => createAdminPollOptionHTML(o)).join('');
+                    list.querySelectorAll('.delete-option-btn').forEach(btn => btn.addEventListener('click', e => e.target.closest('.admin-poll-option').remove()));
+                    list.querySelectorAll('.poll-color-input').forEach(inp => inp.addEventListener('input', e => {
+                        e.target.parentElement.querySelector('.color-preview').style.backgroundColor = e.target.value;
+                    }));
+                }
+            }
+            function createAdminPollOptionHTML(o) {
+                const colorStyle = o.color.startsWith('#') || o.color.includes('rgb') ? `background-color: ${o.color}` : '';
+                return `<div class="admin-poll-option flex flex-col md:flex-row gap-2 md:items-center p-3 border border-gray-800 bg-black" data-id="${o.id}" data-votes="${o.votes}">
+                    <div class="w-4 h-4 border border-gray-600 color-preview" style="${colorStyle}"></div>
+                    <input type="text" class="poll-name-input form-input flex-1 text-xs" value="${o.name}" placeholder="Option Name">
+                    <input type="text" class="poll-color-input form-input w-full md:w-32 text-xs" value="${o.color}" placeholder="Color (Hex/Name)">
+                    <button type="button" class="delete-option-btn text-red-500 font-bold text-xs hover:bg-red-500 hover:text-white border border-red-500 px-2 py-1 self-end md:self-auto">REMOVE</button>
+                </div>`;
+            }
+            function setupSettings() {
+                if(isFirebaseEnabled) {
+                    firestore.getDoc(settingsDocRef).then(doc => {
+                        if(doc.exists()) {
+                            const d = doc.data();
+                            document.getElementById('setting-stripe-key').value = d.stripeKey || '';
+                            document.getElementById('setting-paypal-id').value = d.paypalId || '';
+                            document.getElementById('setting-email').value = d.email || '';
+                        }
+                    });
+                }
+            }
+
+            // Animations & 3D
+            function setupAnimations() { document.querySelectorAll('.parallax-container').forEach(c => { gsap.to(c.querySelector('.parallax-content'), { yPercent: -10, ease: "none", scrollTrigger: { trigger: c, scrub: true } }); if(c.querySelector('.parallax-art')) gsap.to(c.querySelector('.parallax-art'), { yPercent: 15, ease: "none", scrollTrigger: { trigger: c, scrub: true } }); }); }
+            
+            function init3DBackground() {
+                const canvas = document.querySelector('.hero-canvas'); const scene = new THREE.Scene(); const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); camera.position.z = 5;
+                const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true }); renderer.setSize(window.innerWidth, window.innerHeight); renderer.setPixelRatio(window.devicePixelRatio > 1 ? 1.5 : 1); // Performance optimization for mobile
+                
+                const composer = new EffectComposer(renderer); composer.addPass(new RenderPass(scene, camera));
+                const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.2, 0.4, 0.85); bloomPass.threshold = 0.2; bloomPass.strength = 1.0; bloomPass.radius = 0.5; composer.addPass(bloomPass);
+                
+                // Mobile Optimization: Reduce particles
+                const isMobile = window.innerWidth < 768;
+                const starCount = isMobile ? 2000 : 5000;
+                const starGeo = new THREE.BufferGeometry(); const posArray = new Float32Array(starCount * 3); for(let i=0; i<starCount*3; i++) posArray[i] = (Math.random() - 0.5) * 50; starGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+                const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ size: 0.02, color: 0xffffff, transparent: true, opacity: 0.8 })); scene.add(stars);
+                
+                const catSprites = [];
+                const createCatTexture = (col) => { const c = document.createElement('canvas'); c.width = 64; c.height = 64; const x = c.getContext('2d'); x.fillStyle = col; x.beginPath(); x.moveTo(32, 5); x.bezierCurveTo(5, 5, 5, 40, 20, 59); x.bezierCurveTo(32, 55, 44, 59, 59, 40); x.bezierCurveTo(59, 5, 32, 5, 32, 5); x.fill(); x.beginPath(); x.moveTo(10, 20); x.lineTo(5, 5); x.lineTo(25, 10); x.fill(); x.beginPath(); x.moveTo(54, 20); x.lineTo(59, 5); x.lineTo(39, 10); x.fill(); x.fillStyle = '#000'; x.beginPath(); x.arc(22, 30, 4, 0, 7); x.fill(); x.beginPath(); x.arc(41, 30, 4, 0, 7); x.fill(); return new THREE.CanvasTexture(c); };
+                const tex1 = createCatTexture('#ff2a2a'); const tex2 = createCatTexture('#2a2aff');
+                // Reduce cats on mobile
+                for(let i=0; i<(isMobile ? 3 : 6); i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: i%2?tex1:tex2, transparent: true, opacity: 0.9 })); s.position.set((Math.random()-0.5)*20, (Math.random()-0.5)*20, (Math.random()-0.5)*10); s.scale.set(1.5,1.5,1.5); s.userData = { vel: new THREE.Vector3((Math.random()-0.5)*0.02, (Math.random()-0.5)*0.02, 0) }; catSprites.push(s); scene.add(s); }
+                
+                const animate = () => { requestAnimationFrame(animate); stars.rotation.y += 0.0005; catSprites.forEach(c => { c.position.add(c.userData.vel); c.position.y += Math.sin(Date.now()*0.001 + c.id)*0.005; if(Math.abs(c.position.x)>10) c.userData.vel.x *= -1; if(Math.abs(c.position.y)>10) c.userData.vel.y *= -1; }); composer.render(); }; animate();
+                window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); composer.setSize(window.innerWidth, window.innerHeight); });
+            }
+
+            }).catch(e => console.error('INIT FAILED:', e));
+        ;
+    </script>
 </body>
 </html>
