@@ -124,25 +124,19 @@
 
         <!-- SECTION: FEATURED DROP -->
         <section id="featured" class="min-h-screen py-24 px-6 md:px-12 flex items-center justify-center relative overflow-hidden">
-            <!-- Background Blob -->
             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-900/20 blur-[120px] rounded-full"></div>
             
             <div class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
-                <!-- Left: The Art -->
                 <div class="relative group perspective-1000">
                     <div class="absolute -inset-4 bg-gradient-to-r from-[#ff2a2a] to-blue-600 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
-                    <!-- Featured Image -->
                     <img src="images/BC247DC1-92CB-4ED7-B967-1095ABDDF842.jpg" 
                          class="relative rounded-lg shadow-2xl transform transition-transform duration-500 group-hover:rotate-1 group-hover:scale-[1.02] border border-white/10" 
                          alt="Featured Artist">
-                    
-                    <!-- Floating Badge -->
                     <img src="images/7E48E20B-3A7B-4743-A780-76341B550E7A.jpg" 
                          class="absolute -bottom-10 -right-10 w-32 md:w-48 rounded-full border-4 border-black animate-[spin_10s_linear_infinite] shadow-xl"
                          alt="Verified Badge">
                 </div>
 
-                <!-- Right: The Copy -->
                 <div class="text-left space-y-8">
                     <h2 class="font-graffiti text-6xl md:text-8xl leading-none">
                         URBAN<br><span class="text-[#ff2a2a]">DECAY</span>
@@ -173,9 +167,7 @@
                     </div>
                 </div>
 
-                <!-- Product Grid (Populated by JS) -->
                 <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- Loading Skeleton -->
                     <div class="col-span-full h-96 flex flex-col items-center justify-center border border-dashed border-gray-800">
                         <div class="w-12 h-12 border-4 border-[#ff2a2a] border-t-transparent rounded-full animate-spin mb-4"></div>
                         <span class="font-mono animate-pulse text-gray-500">CONNECTING TO FIREBASE...</span>
@@ -186,7 +178,6 @@
 
         <!-- SECTION: ORIGINS -->
         <section id="origins" class="relative min-h-[120vh] flex items-center justify-center overflow-hidden">
-            <!-- Parallax Background using the Building Image -->
             <div class="absolute inset-0 z-0">
                 <img src="images/FF50E895-4CFF-404D-B23F-23A6A240A6B1.jpg" 
                      class="w-full h-full object-cover opacity-40 grayscale contrast-125 parallax-layer scale-110" 
@@ -197,14 +188,12 @@
             <div class="relative z-10 max-w-4xl mx-auto text-center px-6">
                 <div class="bg-black/70 backdrop-blur-md p-8 md:p-12 border border-white/10 transform rotate-1 hover:rotate-0 transition-transform duration-500">
                     <h2 class="font-graffiti text-5xl md:text-7xl mb-6 text-white">CONCRETE ORIGINS</h2>
-                    
                     <p class="font-mono text-gray-300 mb-8 leading-loose">
                         9 Lives was born from the static between channels. A mashup of anime nostalgia, street art rebellion, and the digital void. We don't just sell clothes; we sell armor for the modern dystopia.
                     </p>
                     <p class="mt-6 font-mono text-[#ff2a2a] text-xs md:text-sm tracking-widest uppercase">
                         EST. 2025 // TOKYO - NY - CYBERSPACE // SOCAL
                     </p>
-                    
                     <div class="grid grid-cols-3 gap-4 border-t border-white/10 pt-8 mt-8">
                         <div class="hover:text-[#ff2a2a] transition-colors cursor-default">
                             <span class="block font-graffiti text-4xl text-[#ff2a2a]">09</span>
@@ -291,7 +280,6 @@
                 </div>
 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    <!-- Simulated Feed Items -->
                     <a href="https://www.instagram.com/ft.9livesstudio/" target="_blank" class="group relative aspect-square overflow-hidden block">
                         <img src="images/art-1.jpg" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0">
                         <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -329,7 +317,6 @@
                 <p class="font-mono text-center font-bold mb-12 bg-black text-[#ff2a2a] inline-block px-4 py-1 mx-auto">/// DECIDED BY THE HIVE MIND ///</p>
 
                 <div id="poll-container" class="bg-black text-white p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,0.5)] border-2 border-black">
-                    <!-- Poll options loaded by JS -->
                     <div class="flex justify-center items-center h-32">
                         <div class="w-8 h-8 border-2 border-[#ff2a2a] border-t-transparent rounded-full animate-spin"></div>
                     </div>
@@ -341,7 +328,6 @@
 
     <!-- FOOTER -->
     <footer class="relative py-24 px-6 overflow-hidden">
-        <!-- Background Image -->
         <div class="absolute inset-0 z-0">
             <img src="images/art-2.jpg" class="w-full h-full object-cover opacity-20" alt="Footer Room">
             <div class="absolute inset-0 bg-black/80"></div>
@@ -355,7 +341,6 @@
                     ALL RIGHTS RESERVED.<br>
                     DESIGNED FOR THE APOCALYPSE.
                 </p>
-                 <!-- SYSTEM ACCESS BUTTON -->
                 <button id="admin-trigger" class="mt-4 font-mono text-[10px] text-[#333] hover:text-[#ff2a2a] border border-[#333] hover:border-[#ff2a2a] px-2 py-1 transition-all">
                     [SYSTEM ACCESS]
                 </button>
@@ -385,7 +370,6 @@
                 <button id="close-cart" class="font-mono text-xl hover:text-[#ff2a2a]">×</button>
             </div>
             <div id="cart-items" class="flex-grow overflow-y-auto space-y-4">
-                <!-- Items injected here -->
                 <p class="font-mono text-gray-600 text-center mt-10">CART IS EMPTY</p>
             </div>
             <div class="border-t border-gray-800 pt-6">
@@ -470,13 +454,11 @@
             const menu = document.getElementById('mobile-menu');
             menu.classList.toggle('translate-y-full');
         };
-        
-        // Ensure preloader vanishes even if JS fails
         window.onload = () => {
             setTimeout(() => {
                 const p = document.getElementById('preloader');
                 if(p) { p.style.opacity = '0'; setTimeout(() => p.remove(), 1000); }
-            }, 3000); // Failsafe
+            }, 3000);
         };
     </script>
 </body>
