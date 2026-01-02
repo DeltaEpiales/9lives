@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>9 LIVES // IMMORTAL STREETWEAR</title>
+    
+    <!-- TAILWIND & FONTS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Londrina+Sketch&family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- CUSTOM STYLES -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- PRELOAD CRITICAL ASSETS -->
+    <link rel="preload" as="image" href="images/art-1.jpg">
+    <link rel="preload" as="image" href="images/depth-1.jpg">
+</head>
+<body class="bg-black text-[#f0f0f0] overflow-x-hidden antialiased selection:bg-[#ff2a2a] selection:text-black">
+
+    <!-- CUSTOM CURSOR -->
+    <div id="cursor-dot"></div>
+    <div id="cursor-outline"></div>
+
+    <!-- PRELOADER -->
+    <div id="preloader" class="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center transition-opacity duration-1000">
+        <div class="font-graffiti text-6xl text-white animate-pulse">LOADING ASSETS</div>
+        <div class="w-64 h-1 bg-[#333] mt-4 overflow-hidden">
+            <div class="h-full bg-[#ff2a2a] animate-[load_2s_ease-in-out_forwards]" style="width: 0%"></div>
+        </div>
+        <div class="font-mono text-xs text-[#ff2a2a] mt-2 tracking-widest">INITIALIZING WEBGL...</div>
+    </div>
+
+    <!-- NAVIGATION -->
+    <nav class="fixed top-0 left-0 w-full p-6 z-50 flex justify-between items-center mix-blend-difference pointer-events-none">
+        <!-- LOGO -->
+        <div class="pointer-events-auto cursor-pointer group relative">
+            <img src="images/logo.webp" id="nav-logo" class="w-24 md:w-32 transition-transform duration-300 group-hover:scale-105 group-hover:rotate-2" alt="9 LIVES">
+            <div class="absolute -bottom-4 left-0 w-full text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <span class="font-mono text-[10px] text-[#ff2a2a] tracking-widest">EST.2025</span>
+            </div>
+        </div>
+
+        <!-- DESKTOP LINKS -->
+        <div class="hidden md:flex gap-12 pointer-events-auto">
+            <a href="#store" class="nav-link font-mono font-bold text-sm tracking-widest hover:text-[#ff2a2a] transition-colors">[STORE]</a>
+            <a href="#featured" class="nav-link font-mono font-bold text-sm tracking-widest hover:text-[#ff2a2a] transition-colors">[FEATURED]</a>
+            <a href="#origins" class="nav-link font-mono font-bold text-sm tracking-widest hover:text-[#ff2a2a] transition-colors">[ORIGINS]</a>
+            <a href="#community" class="nav-link font-mono font-bold text-sm tracking-widest hover:text-[#ff2a2a] transition-colors">[COMMUNITY]</a>
+            <a href="#vote" class="nav-link font-mono font-bold text-sm tracking-widest hover:text-[#ff2a2a] transition-colors">[VOTE]</a>
+        </div>
+
+        <!-- CART / MENU -->
+        <div class="pointer-events-auto flex items-center gap-6">
+            <button id="cart-btn" class="font-mono font-bold text-sm hover:text-[#ff2a2a] transition-colors flex items-center gap-2">
+                CART <span id="cart-count" class="bg-[#ff2a2a] text-black px-1.5 text-xs rounded-sm">0</span>
+            </button>
+            <div id="mobile-toggle" class="md:hidden space-y-1.5 cursor-pointer">
+                <span class="block w-8 h-0.5 bg-white"></span>
+                <span class="block w-6 h-0.5 bg-white ml-auto"></span>
+                <span class="block w-8 h-0.5 bg-white"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MOBILE MENU OVERLAY -->
+    <div id="mobile-menu" class="fixed inset-0 bg-black z-40 transform translate-y-full transition-transform duration-500 flex flex-col items-center justify-center space-y-8">
+        <a href="#store" class="font-graffiti text-5xl hover:text-[#ff2a2a]" onclick="toggleMobileMenu()">STORE</a>
+        <a href="#featured" class="font-graffiti text-5xl hover:text-[#ff2a2a]" onclick="toggleMobileMenu()">FEATURED</a>
+        <a href="#origins" class="font-graffiti text-5xl hover:text-[#ff2a2a]" onclick="toggleMobileMenu()">ORIGINS</a>
+        <a href="#community" class="font-graffiti text-5xl hover:text-[#ff2a2a]" onclick="toggleMobileMenu()">COMMUNITY</a>
+        <a href="#vote" class="font-graffiti text-5xl hover:text-[#ff2a2a]" onclick="toggleMobileMenu()">VOTE</a>
+        <button class="absolute top-6 right-6 text-2xl font-mono" onclick="toggleMobileMenu()">[X]</button>
+    </div>
+
+    <!-- 3D HERO CONTAINER -->
+    <div id="hero-container" class="relative w-full h-screen overflow-hidden">
+        <div id="webgl-canvas" class="absolute inset-0 z-0"></div>
+        
+        <!-- HERO OVERLAY CONTENT -->
+        <div class="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none">
+            <div class="relative">
+                <h1 class="font-graffiti text-[18vw] leading-[0.8] text-transparent stroke-text hover-reveal transition-all duration-700 select-none mix-blend-overlay">
+                    9 LIVES
+                </h1>
+            </div>
+            <div class="mt-8 flex gap-4 pointer-events-auto">
+                <a href="#store" class="px-8 py-3 border border-[#ff2a2a] bg-black/50 backdrop-blur-sm text-[#ff2a2a] font-mono hover:bg-[#ff2a2a] hover:text-black transition-all duration-300">
+                    ENTER_SHOP
+                </a>
+            </div>
+        </div>
+
+        <!-- SCROLL INDICATOR -->
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 animate-bounce">
+            <img src="images/cat2.png" class="w-12 opacity-80" alt="Scroll Down">
+        </div>
+    </div>
+
+    <!-- MARQUEE STRIP -->
+    <div class="bg-[#ff2a2a] py-3 overflow-hidden -rotate-1 scale-105 z-20 relative border-y-2 border-white marquee-container flex">
+        <!-- TRACK 1 -->
+        <div class="animate-marquee whitespace-nowrap font-mono font-black text-black text-lg tracking-wider flex shrink-0">
+            <span class="glitch-text mx-8" data-text="/// NEW DROP LIVE">/// NEW DROP LIVE</span>
+            <span class="glitch-text mx-8" data-text="/// NO RESPAWNS">/// NO RESPAWNS</span>
+            <span class="glitch-text mx-8" data-text="/// WORLDWIDE SHIPPING">/// WORLDWIDE SHIPPING</span>
+            <span class="glitch-text mx-8" data-text="/// 9 LIVES FOREVER">/// 9 LIVES FOREVER</span>
+            <span class="glitch-text mx-8" data-text="/// STREETWEAR FOR THE UNDEAD">/// STREETWEAR FOR THE UNDEAD</span>
+        </div>
+        <!-- TRACK 2 (IDENTICAL DUPLICATE) -->
+        <div class="animate-marquee whitespace-nowrap font-mono font-black text-black text-lg tracking-wider flex shrink-0">
+            <span class="glitch-text mx-8" data-text="/// NEW DROP LIVE">/// NEW DROP LIVE</span>
+            <span class="glitch-text mx-8" data-text="/// NO RESPAWNS">/// NO RESPAWNS</span>
+            <span class="glitch-text mx-8" data-text="/// WORLDWIDE SHIPPING">/// WORLDWIDE SHIPPING</span>
+            <span class="glitch-text mx-8" data-text="/// 9 LIVES FOREVER">/// 9 LIVES FOREVER</span>
+            <span class="glitch-text mx-8" data-text="/// STREETWEAR FOR THE UNDEAD">/// STREETWEAR FOR THE UNDEAD</span>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT WRAPPER -->
+    <main class="relative z-20 bg-black">
+
+        <!-- SECTION: FEATURED DROP -->
+        <section id="featured" class="min-h-screen py-24 px-6 md:px-12 flex items-center justify-center relative overflow-hidden">
+            <!-- Background Blob -->
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-900/20 blur-[120px] rounded-full"></div>
+            
+            <div class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
+                <!-- Left: The Art -->
+                <div class="relative group perspective-1000">
+                    <div class="absolute -inset-4 bg-gradient-to-r from-[#ff2a2a] to-blue-600 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+                    <!-- Featured Image -->
+                    <img src="images/BC247DC1-92CB-4ED7-B967-1095ABDDF842.jpg" 
+                         class="relative rounded-lg shadow-2xl transform transition-transform duration-500 group-hover:rotate-1 group-hover:scale-[1.02] border border-white/10" 
+                         alt="Featured Artist">
+                    
+                    <!-- Floating Badge -->
+                    <img src="images/7E48E20B-3A7B-4743-A780-76341B550E7A.jpg" 
+                         class="absolute -bottom-10 -right-10 w-32 md:w-48 rounded-full border-4 border-black animate-[spin_10s_linear_infinite] shadow-xl"
+                         alt="Verified Badge">
+                </div>
+
+                <!-- Right: The Copy -->
+                <div class="text-left space-y-8">
+                    <h2 class="font-graffiti text-6xl md:text-8xl leading-none">
+                        URBAN<br><span class="text-[#ff2a2a]">DECAY</span>
+                    </h2>
+                    <p class="font-mono text-gray-400 leading-relaxed text-sm md:text-base border-l-2 border-[#ff2a2a] pl-6">
+                        The streets don't sleep, and neither do we. This collection is inspired by the static between channels, the glitch in the matrix, and the cats that watch it all happen.
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <span class="px-4 py-1 border border-white/20 rounded-full font-mono text-xs hover:border-[#ff2a2a] transition-colors">HEAVYWEIGHT COTTON</span>
+                        <span class="px-4 py-1 border border-white/20 rounded-full font-mono text-xs hover:border-[#ff2a2a] transition-colors">ACID WASH</span>
+                        <span class="px-4 py-1 border border-white/20 rounded-full font-mono text-xs hover:border-[#ff2a2a] transition-colors">LIMITED RUN</span>
+                    </div>
+                    <button class="btn-glitch font-mono font-bold text-xl uppercase py-4 px-8 bg-white text-black hover:bg-[#ff2a2a] transition-colors relative overflow-hidden group">
+                        <span class="relative z-10">COP THE DROP</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: STORE GRID (Dynamic) -->
+        <section id="store" class="py-32 px-6 border-t border-white/10 bg-[#050505]">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex justify-between items-end mb-16">
+                    <h2 class="font-graffiti text-5xl md:text-7xl">INVENTORY</h2>
+                    <div class="flex gap-2 items-center">
+                        <button class="w-3 h-3 rounded-full bg-[#ff2a2a] animate-pulse"></button>
+                        <span class="font-mono text-xs text-[#ff2a2a]">LIVE DATABASE</span>
+                    </div>
+                </div>
+
+                <!-- Product Grid (Populated by JS) -->
+                <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Loading Skeleton -->
+                    <div class="col-span-full h-96 flex flex-col items-center justify-center border border-dashed border-gray-800">
+                        <div class="w-12 h-12 border-4 border-[#ff2a2a] border-t-transparent rounded-full animate-spin mb-4"></div>
+                        <span class="font-mono animate-pulse text-gray-500">CONNECTING TO FIREBASE...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: ORIGINS -->
+        <section id="origins" class="relative min-h-[120vh] flex items-center justify-center overflow-hidden">
+            <!-- Parallax Background using the Building Image -->
+            <div class="absolute inset-0 z-0">
+                <img src="images/FF50E895-4CFF-404D-B23F-23A6A240A6B1.jpg" 
+                     class="w-full h-full object-cover opacity-40 grayscale contrast-125 parallax-layer scale-110" 
+                     alt="Origins Building">
+                <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black"></div>
+            </div>
+
+            <div class="relative z-10 max-w-4xl mx-auto text-center px-6">
+                <div class="bg-black/70 backdrop-blur-md p-8 md:p-12 border border-white/10 transform rotate-1 hover:rotate-0 transition-transform duration-500">
+                    <h2 class="font-graffiti text-5xl md:text-7xl mb-6 text-white">CONCRETE ORIGINS</h2>
+                    
+                    <p class="font-mono text-gray-300 mb-8 leading-loose">
+                        9 Lives was born from the static between channels. A mashup of anime nostalgia, street art rebellion, and the digital void. We don't just sell clothes; we sell armor for the modern dystopia.
+                    </p>
+                    <p class="mt-6 font-mono text-[#ff2a2a] text-xs md:text-sm tracking-widest uppercase">
+                        EST. 2025 // TOKYO - NY - CYBERSPACE // SOCAL
+                    </p>
+                    
+                    <div class="grid grid-cols-3 gap-4 border-t border-white/10 pt-8 mt-8">
+                        <div class="hover:text-[#ff2a2a] transition-colors cursor-default">
+                            <span class="block font-graffiti text-4xl text-[#ff2a2a]">09</span>
+                            <span class="font-mono text-[10px] text-gray-500">LIVES REMAINING</span>
+                        </div>
+                        <div class="hover:text-[#ff2a2a] transition-colors cursor-default">
+                            <span class="block font-graffiti text-4xl text-[#ff2a2a]">∞</span>
+                            <span class="font-mono text-[10px] text-gray-500">POSSIBILITIES</span>
+                        </div>
+                        <div class="hover:text-[#ff2a2a] transition-colors cursor-default">
+                            <span class="block font-graffiti text-4xl text-[#ff2a2a]">24/7</span>
+                            <span class="font-mono text-[10px] text-gray-500">UPTIME</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: COMMUNITY -->
+        <section id="community" class="py-24 px-6 border-t border-white/10 bg-black relative overflow-hidden">
+            <div class="absolute inset-0 bg-[url('images/lt.png')] opacity-5 mix-blend-overlay"></div>
+            <div class="max-w-6xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-12">
+                <!-- Community Info -->
+                <div class="lg:col-span-1 space-y-6">
+                    <h2 class="font-graffiti text-5xl text-white">THE <span class="text-[#ff2a2a]">ALLEY</span></h2>
+                    <p class="font-mono text-sm text-gray-400">Join the undying. Drop a message, leak a theory, or just scream into the void. Trolls get banned.</p>
+                    
+                    <div id="auth-container" class="border border-white/10 p-6 bg-[#0a0a0a]">
+                        <p class="font-mono text-xs text-gray-500 mb-4">IDENTITY REQUIRED FOR TRANSMISSION</p>
+                        <button id="google-login-btn" class="w-full flex items-center justify-center gap-3 bg-white text-black font-mono font-bold py-3 hover:bg-[#ff2a2a] transition-colors">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27c3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12.5S6.42 23 12.1 23c5.83 0 8.84-4.15 8.84-8.83c0-.76-.1-1.27-.1-1.27z"/></svg>
+                            SIGN IN WITH GOOGLE
+                        </button>
+                    </div>
+
+                    <div id="user-profile" class="hidden border border-[#ff2a2a] p-6 bg-[#0a0a0a]">
+                        <div class="flex items-center gap-4 mb-4">
+                            <img id="user-avatar" src="" class="w-10 h-10 rounded-full border border-gray-600">
+                            <div>
+                                <p id="user-name" class="font-mono text-sm font-bold text-white"></p>
+                                <p class="font-mono text-[10px] text-[#ff2a2a]">VERIFIED_OPERATIVE</p>
+                            </div>
+                        </div>
+                        <form id="msg-form" class="space-y-3">
+                            <textarea id="msg-input" maxlength="280" placeholder="TRANSMIT MESSAGE..." class="w-full bg-black border border-gray-800 p-3 text-white font-mono text-xs focus:border-[#ff2a2a] outline-none min-h-[100px]"></textarea>
+                            <div class="flex justify-between items-center">
+                                <span class="font-mono text-[10px] text-gray-600">MAX 280 CHARS</span>
+                                <button type="submit" class="bg-[#ff2a2a] text-black px-4 py-2 font-mono text-xs font-bold hover:bg-white transition-colors">SEND</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Chat Feed -->
+                <div class="lg:col-span-2 bg-[#050505] border border-white/10 h-[600px] flex flex-col">
+                    <div class="p-4 border-b border-white/10 flex justify-between items-center bg-black">
+                        <span class="font-mono text-xs text-[#ff2a2a] animate-pulse">● LIVE FEED</span>
+                        <span class="font-mono text-[10px] text-gray-600">ENCRYPTED //</span>
+                    </div>
+                    <div id="chat-feed" class="flex-1 overflow-y-auto p-6 space-y-6">
+                        <!-- Messages injected via JS -->
+                        <div class="flex flex-col items-center justify-center h-full text-gray-600">
+                            <div class="w-8 h-8 border-2 border-gray-800 border-t-[#ff2a2a] rounded-full animate-spin mb-2"></div>
+                            <span class="font-mono text-xs">SYNCING...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: INSTAGRAM FEED -->
+        <section id="instagram" class="py-24 px-6 border-t border-white/10 bg-black">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="w-12 h-12 bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 rounded-full p-[2px]">
+                        <div class="w-full h-full bg-black rounded-full flex items-center justify-center">
+                            <img src="images/logo.webp" class="w-8 opacity-80" alt="IG">
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-mono font-bold text-white tracking-widest">VISUAL_FEED //</h3>
+                        <a href="https://www.instagram.com/ft.9livesstudio/" target="_blank" class="font-mono text-xs text-[#ff2a2a] hover:underline">@ft.9livesstudio</a>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <!-- Simulated Feed Items -->
+                    <a href="https://www.instagram.com/ft.9livesstudio/" target="_blank" class="group relative aspect-square overflow-hidden block">
+                        <img src="images/art-1.jpg" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0">
+                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span class="font-mono text-white text-xs">VIEW POST ↗</span>
+                        </div>
+                    </a>
+                    <a href="https://www.instagram.com/ft.9livesstudio/" target="_blank" class="group relative aspect-square overflow-hidden block">
+                        <img src="images/depth-1.jpg" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0">
+                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span class="font-mono text-white text-xs">♥ 666</span>
+                        </div>
+                    </a>
+                    <a href="https://www.instagram.com/ft.9livesstudio/" target="_blank" class="group relative aspect-square overflow-hidden block">
+                        <img src="images/art-2.jpg" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0">
+                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span class="font-mono text-white text-xs">#9LIVES</span>
+                        </div>
+                    </a>
+                    <a href="https://www.instagram.com/ft.9livesstudio/" target="_blank" class="group relative aspect-square overflow-hidden bg-[#111] flex items-center justify-center hover:bg-[#ff2a2a] transition-colors">
+                        <div class="text-center group-hover:text-black">
+                            <span class="font-graffiti text-4xl block">FOLLOW</span>
+                            <span class="font-mono text-[10px] block mt-1">THE MOVEMENT</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: POLL & COMMUNITY -->
+        <section id="vote" class="py-24 bg-[#ff2a2a] text-black overflow-hidden relative">
+            <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" style="background-image: url('images/logo.webp'); background-repeat: repeat; background-size: 200px;"></div>
+            
+            <div class="max-w-3xl mx-auto relative z-10 px-6">
+                <h2 class="font-graffiti text-6xl md:text-8xl text-center mb-4 text-black">NEXT DROP?</h2>
+                <p class="font-mono text-center font-bold mb-12 bg-black text-[#ff2a2a] inline-block px-4 py-1 mx-auto">/// DECIDED BY THE HIVE MIND ///</p>
+
+                <div id="poll-container" class="bg-black text-white p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,0.5)] border-2 border-black">
+                    <!-- Poll options loaded by JS -->
+                    <div class="flex justify-center items-center h-32">
+                        <div class="w-8 h-8 border-2 border-[#ff2a2a] border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="relative py-24 px-6 overflow-hidden">
+        <!-- Background Image -->
+        <div class="absolute inset-0 z-0">
+            <img src="images/art-2.jpg" class="w-full h-full object-cover opacity-20" alt="Footer Room">
+            <div class="absolute inset-0 bg-black/80"></div>
+        </div>
+
+        <div class="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
+            <div>
+                <img src="images/logo.webp" class="w-32 mb-6 grayscale hover:grayscale-0 transition-all duration-500" alt="Logo">
+                <p class="font-mono text-xs text-gray-500 max-w-xs">
+                    © 2026 9 LIVES.<br>
+                    ALL RIGHTS RESERVED.<br>
+                    DESIGNED FOR THE APOCALYPSE.
+                </p>
+                 <!-- SYSTEM ACCESS BUTTON -->
+                <button id="admin-trigger" class="mt-4 font-mono text-[10px] text-[#333] hover:text-[#ff2a2a] border border-[#333] hover:border-[#ff2a2a] px-2 py-1 transition-all">
+                    [SYSTEM ACCESS]
+                </button>
+            </div>
+
+            <div class="font-mono text-sm space-y-4">
+                <a href="https://www.instagram.com/ft.9livesstudio/" target="_blank" class="block hover:text-[#ff2a2a] hover:translate-x-2 transition-all">INSTAGRAM</a>
+                <a href="#" class="block hover:text-[#ff2a2a] hover:translate-x-2 transition-all">TWITTER</a>
+                <a href="#" class="block hover:text-[#ff2a2a] hover:translate-x-2 transition-all">DISCORD</a>
+            </div>
+
+            <div class="w-full md:w-auto">
+                <h3 class="font-graffiti text-3xl mb-4">NEWSLETTER</h3>
+                <form class="flex border-b border-white pb-2" onsubmit="event.preventDefault(); window.showToast('SUBSCRIBED')">
+                    <input type="email" placeholder="ENTER_EMAIL" class="bg-transparent outline-none w-full font-mono placeholder-gray-600 focus:placeholder-white transition-colors">
+                    <button class="font-mono font-bold hover:text-[#ff2a2a]">submit</button>
+                </form>
+            </div>
+        </div>
+    </footer>
+
+    <!-- CART SIDEBAR -->
+    <div id="cart-sidebar" class="fixed top-0 right-0 w-full md:w-[400px] h-full bg-black border-l border-gray-800 z-[100] transform translate-x-full transition-transform duration-500 ease-[cubic-bezier(0.85,0,0.15,1)]">
+        <div class="p-6 h-full flex flex-col">
+            <div class="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
+                <h2 class="font-graffiti text-4xl">YOUR LOOT</h2>
+                <button id="close-cart" class="font-mono text-xl hover:text-[#ff2a2a]">×</button>
+            </div>
+            <div id="cart-items" class="flex-grow overflow-y-auto space-y-4">
+                <!-- Items injected here -->
+                <p class="font-mono text-gray-600 text-center mt-10">CART IS EMPTY</p>
+            </div>
+            <div class="border-t border-gray-800 pt-6">
+                <div class="flex justify-between font-mono font-bold mb-4 text-xl">
+                    <span>TOTAL</span>
+                    <span id="cart-total">$0.00</span>
+                </div>
+                <button class="w-full bg-[#ff2a2a] text-black font-mono font-bold py-4 hover:bg-white transition-colors uppercase">
+                    Checkout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN MODAL -->
+    <div id="admin-modal" class="fixed inset-0 z-[200] bg-black/95 hidden flex items-center justify-center backdrop-blur-sm p-6">
+        <div class="w-full max-w-lg border border-[#ff2a2a] p-8 bg-black relative shadow-[0_0_50px_rgba(255,42,42,0.3)]">
+            <button id="close-admin" class="absolute top-4 right-4 text-gray-500 hover:text-white">✕</button>
+            
+            <!-- VIEW 1: PIN SECURITY CHECK -->
+            <div id="pin-view">
+                <h2 class="font-graffiti text-5xl text-[#ff2a2a] mb-4 text-center">SECURITY CHECK</h2>
+                <p class="font-mono text-xs text-gray-400 text-center mb-6">RESTRICTED AREA. ENTER CLEARANCE CODE.</p>
+                <form id="pin-form" class="space-y-6">
+                    <input type="password" id="admin-pin" class="w-full bg-[#111] border border-[#333] p-3 text-center text-white font-mono tracking-[0.5em] text-xl focus:border-[#ff2a2a] outline-none transition-colors" placeholder="••••••••" maxlength="8">
+                    <button type="submit" class="w-full bg-white text-black font-mono font-bold py-3 hover:bg-[#ff2a2a] transition-colors uppercase">VERIFY</button>
+                    <p id="pin-error" class="text-red-500 font-mono text-xs text-center hidden">INVALID SEQUENCE</p>
+                </form>
+            </div>
+
+            <!-- VIEW 2: FIREBASE LOGIN (Hidden initially) -->
+            <div id="admin-login-view" class="hidden">
+                <h2 class="font-graffiti text-5xl text-[#ff2a2a] mb-8 text-center">GATEKEEPER</h2>
+                <form id="login-form" class="space-y-6">
+                    <div>
+                        <label class="block font-mono text-xs text-gray-500 mb-2">IDENTIFIER</label>
+                        <input type="email" id="admin-email" class="w-full bg-[#111] border border-[#333] p-3 text-white font-mono focus:border-[#ff2a2a] outline-none transition-colors" placeholder="admin@9lives.com">
+                    </div>
+                    <div>
+                        <label class="block font-mono text-xs text-gray-500 mb-2">KEY</label>
+                        <input type="password" id="admin-pass" class="w-full bg-[#111] border border-[#333] p-3 text-white font-mono focus:border-[#ff2a2a] outline-none transition-colors" placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="w-full bg-white text-black font-mono font-bold py-3 hover:bg-[#ff2a2a] transition-colors uppercase">AUTHENTICATE</button>
+                    <p id="auth-error" class="text-red-500 font-mono text-xs text-center hidden">ACCESS DENIED</p>
+                </form>
+            </div>
+
+            <!-- VIEW 3: DASHBOARD (Hidden initially) -->
+            <div id="admin-dashboard-view" class="hidden max-h-[80vh] overflow-y-auto">
+                <h2 class="font-graffiti text-4xl text-white mb-6">COMMAND CENTER</h2>
+                
+                <!-- NEW: ANNOUNCEMENT SECTION -->
+                <div class="mb-8 p-4 border border-[#ff2a2a] bg-[#111]">
+                    <h3 class="font-mono text-[#ff2a2a] text-sm mb-2 font-bold">TRANSMIT ANNOUNCEMENT</h3>
+                    <textarea id="announcement-text" class="w-full bg-black border border-gray-800 p-2 text-white font-mono text-xs mb-2 h-20 outline-none focus:border-white" placeholder="TYPE SYSTEM BROADCAST..."></textarea>
+                    <button id="btn-broadcast" class="w-full bg-[#ff2a2a] text-black font-mono text-xs font-bold py-2 hover:bg-white transition-colors">BROADCAST TO FEED</button>
+                </div>
+
+                <hr class="border-gray-800 mb-8">
+
+                <h3 class="font-mono text-gray-500 text-sm mb-4">INVENTORY CONTROL</h3>
+                <form id="add-product-form" class="space-y-4">
+                    <input type="text" id="new-prod-name" placeholder="PRODUCT NAME" class="w-full bg-[#111] border border-[#333] p-3 font-mono text-sm text-white focus:border-[#ff2a2a] outline-none">
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="number" id="new-prod-price" placeholder="PRICE" class="w-full bg-[#111] border border-[#333] p-3 font-mono text-sm text-white focus:border-[#ff2a2a] outline-none">
+                        <input type="text" id="new-prod-img" placeholder="IMAGE URL" class="w-full bg-[#111] border border-[#333] p-3 font-mono text-sm text-white focus:border-[#ff2a2a] outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-white text-black font-mono font-bold py-3 hover:bg-[#ff2a2a] transition-colors uppercase">DEPLOY ITEM</button>
+                </form>
+                
+                <button id="admin-logout" class="mt-8 text-xs font-mono text-gray-500 hover:text-white underline w-full text-center">TERMINATE SESSION</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN SCRIPT -->
+    <script type="module" src="js/main.js"></script>
+    
+    <!-- UI Utils -->
+    <script>
+        window.toggleMobileMenu = () => {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('translate-y-full');
+        };
+        
+        // Ensure preloader vanishes even if JS fails
+        window.onload = () => {
+            setTimeout(() => {
+                const p = document.getElementById('preloader');
+                if(p) { p.style.opacity = '0'; setTimeout(() => p.remove(), 1000); }
+            }, 3000); // Failsafe
+        };
+    </script>
+</body>
+</html>
